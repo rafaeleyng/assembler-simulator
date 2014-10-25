@@ -2,13 +2,45 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title></title>
+	<title>Assembler</title>
+  <link rel="stylesheet" type="text/css" href="app.css">
 </head>
 <body>
 
+  <select data-bind="options: formats, optionsText: 'format', value: format"></select>  
+  <div data-bind="template: {name: template(), data: format}"></div>
 
+  <!-- Templates -->
+  <!-- types -->
+  <script type="text/html" id="R">
+    <div data-bind="template: {name: 'common', data: $data}"></div>
+    <div data-bind="template: {name: 'rsrt', data: $data}"></div>
+    <div><label for="">rd</label><input type="text"></div>
+    <div><label for="">shamt</label><input type="text"></div>
+    <div><label for="">funct</label><input type="text"></div>
+  </script>
 
+  <script type="text/html" id="I">
+    <div data-bind="template: {name: 'common', data: $data}"></div>
+    <div data-bind="template: {name: 'rsrt', data: $data}"></div>
+    <div><label for="">imm</label><input type="text">
+  </script>
 
+  <script type="text/html" id="J">
+    <div data-bind="template: {name: 'common', data: $data}"></div>
+    <div><label for="">addr</label><input type="text"></div>
+  </script>
+
+  <!-- partials -->
+  <script type="text/html" id="common">
+    <div><h3 data-bind="text: $root.formatLabel()"></h3></div>
+    <div><label for="">op</label><select data-bind="options: instructions"></select></div>
+  </script>
+
+  <script type="text/html" id="rsrt">
+    <div><label for="">rs</label><input type="text"></div>
+    <div><label for="">rt</label><input type="text"></div>
+  </script>
 
 	<script src="knockout-3.2.0.js"></script>
 	<script src="app.js"></script>

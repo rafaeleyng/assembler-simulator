@@ -14,9 +14,9 @@ var ViewModel = function() {
 
   var self = this;
 
-  this.result = ko.observable();
+  this.results = ko.observableArray();
 
-  this.format = ko.observable('J');
+  this.format = ko.observable();
 
   this.formats = [
     new Format(
@@ -36,24 +36,23 @@ var ViewModel = function() {
     ),
   ];
 
-  // this.currentFormat = ko.computed(function() {
-  //   for (var i in this.formats) {
-  //     if (this.formats[i].format() === this.format) {
-  //       return this.formats[i];
-  //     }
-  //   }
-  // });
-
-  console.log(this.formats);
   this.template = function() {
     return this.format().format;
   };
 
   this.formatLabel = function() {
     return this.format().format + '-Type';
-  }
-  this.visible = function(format) {
-    return this.format().format === format;
+  };
+
+  this.enable = function() {
+    var currentFormat = this.format();
+    for (var i in currentFormat.components) {
+      var componentValue = currentFormat.componentsValues[currentFormat.components[i]]();
+      if (!componentValue) {
+        return false;
+      }
+    }
+    return true;
   };
 
   this.add = function() {
@@ -61,10 +60,10 @@ var ViewModel = function() {
     var components = this.format().components;
     for (var i in components) {
       var component = components[i];
-      result += this.format().componentsValues[component]() + ' ';
-      // result += component + ' ';
+      // result += this.format().componentsValues[component]() + ' ';
+      result += parseInt(this.format().componentsValues[component]()).toString(2) + ' ';
     }
-    this.result(result);
+    this.results.push(result);
   };
 
   this.init = function() {

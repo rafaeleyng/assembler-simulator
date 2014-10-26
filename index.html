@@ -9,39 +9,43 @@
   
   <select data-bind="options: formats, optionsText: 'format', value: format"></select>  
   <div data-bind="template: {name: template(), data: format}"></div>
-  <div data-bind="text: result"></div>
+  <div>
+    <ul data-bind="foreach: results">
+      <li data-bind="text: $data"></li>
+    </ul>
+  </div>
   
   <!-- Templates -->
   <!-- types -->
   <script type="text/html" id="R">
     <div data-bind="template: {name: 'common', data: $data}"></div>
     <div data-bind="template: {name: 'rs-rt', data: $data}"></div>
-    <div><label for="">rd</label><input type="text" data-bind="value: $root.format().componentsValues.rd"></div>
-    <div><label for="">shamt</label><input type="text" data-bind="value: $root.format().componentsValues.shamt"></div>
-    <div><label for="">funct</label><input type="text" data-bind="value: $root.format().componentsValues.funct"></div>
+    <div><label for="">rd</label><input type="text" data-bind="textInput: $root.format().componentsValues.rd"></div>
+    <div><label for="">shamt</label><input type="text" data-bind="textInput: $root.format().componentsValues.shamt"></div>
+    <div><label for="">funct</label><input type="text" data-bind="textInput: $root.format().componentsValues.funct"></div>
   </script>
 
   <script type="text/html" id="I">
     <div data-bind="template: {name: 'common', data: $data}"></div>
     <div data-bind="template: {name: 'rs-rt', data: $data}"></div>
-    <div><label for="">imm</label><input type="text" data-bind="value: $root.format().componentsValues.imm"></div>
+    <div><label for="">imm</label><input type="text" data-bind="textInput: $root.format().componentsValues.imm"></div>
   </script>
 
   <script type="text/html" id="J">
     <div data-bind="template: {name: 'common', data: $data}"></div>
-    <div><label for="">addr</label><input type="text" data-bind="value: $root.format().componentsValues.addr"></div>
+    <div><label for="">addr</label><input type="text" data-bind="textInput: $root.format().componentsValues.addr"></div>
   </script>
 
   <!-- partials -->
   <script type="text/html" id="common">
     <div><h3 data-bind="text: $root.formatLabel()"></h3></div>
-    <div><button data-bind="click: $root.add.bind($root)"></button></div>
+    <div><button data-bind="click: $root.add.bind($root), enable: $root.enable()">Compile</button></div>
     <div><label for="">op</label><select data-bind="options: instructions, value: $root.format().componentsValues.op"></select></div>
   </script>
 
   <script type="text/html" id="rs-rt">
-    <div><label for="">rs</label><input type="text" data-bind="value: $root.format().componentsValues.rs"></div>
-    <div><label for="">rt</label><input type="text" data-bind="value: $root.format().componentsValues.rt"></div>
+    <div><label for="">rs</label><input type="text" data-bind="textInput: $root.format().componentsValues.rs"></div>
+    <div><label for="">rt</label><input type="text" data-bind="textInput: $root.format().componentsValues.rt"></div>
   </script>
 
 	<script src="knockout-3.2.0.js"></script>

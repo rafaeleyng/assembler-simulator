@@ -8,6 +8,7 @@
 <body>
   
   <select data-bind="options: formats, optionsText: 'format', value: format"></select>  
+  <div data-bind="text: error"></div>
   <div data-bind="template: {name: template(), data: format}"></div>
   <div>
     <ul data-bind="foreach: results">
@@ -39,7 +40,7 @@
   <!-- partials -->
   <script type="text/html" id="common">
     <div><h3 data-bind="text: $root.formatLabel()"></h3></div>
-    <div><button data-bind="click: $root.add.bind($root), enable: $root.enable()">Compile</button></div>
+    <div><button data-bind="click: $root.compile.bind($root), enable: $root.enableCompile()">Compile</button></div>
     <div><label for="">op</label><select data-bind="options: instructions, value: $root.format().componentsValues.op"></select></div>
   </script>
 

@@ -15,14 +15,30 @@ var opcodes = {
   jr:   '001000',
 };
 
-var componentsBits = {
-  rs: 5,
-  rt: 5,
-  rd: 5,
-  shamt: 5,
-  funct: 6,
-  imm: 16,
-  addr: 26,
+var Component = function(bits, allowNegative) {
+  this.bits = bits;  
+  var powerResult = Math.pow(2, bits);
+  var min, max;
+  if (allowNegative) {
+    var halfPowerResult = powerResult/2;
+    min = halfPowerResult - powerResult;
+    max = halfPowerResult - 1;
+  } else {
+    min = 0;
+    max = powerResult - 1;
+  }
+  this.min = min;
+  this.max = max;
+};
+
+var componentsParams = {
+  rs: new Component(5),
+  rt: new Component(5),
+  rd: new Component(5),
+  shamt: new Component(5),
+  funct: new Component(6),
+  imm: new Component(16, true),
+  addr: new Component(26),
 };
 
 var Format = function(format, instructions, components) {
@@ -51,7 +67,7 @@ function getBinary(int, bits) {
     return int.toString(2).padleft(bits, "0");
   }
   return (-int-1).toString(2)
-    .replace(/[01]/g, function(d){return +!+d;}) // hehe: inverts each char
+    .replace(/[01]/g, function(d){return +!+d;}) // inverts each char
     .padleft(bits, "1");
 };
 
@@ -60,7 +76,7 @@ var ViewModel = function() {
   var self = this;
 
   this.results = ko.observableArray();
-
+  this.error = ko.observable();
   this.format = ko.observable();
 
   this.formats = [
@@ -89,7 +105,31 @@ var ViewModel = function() {
     return this.format().format + '-Type';
   };
 
-  this.enable = function() {
+  this.validate = function() {
+    var components = this.format().components;
+    for (var i in components) {
+      var component = components[i];      
+      if (component !== 'op') {
+        var componentValue = this.format().componentsValues[component]();
+        var error = undefined;
+        if (!componentValue) {
+          error = 'campo não informado';
+        } else if (componentValue.length != componentValue.replace(/[^\d-]/g, '').length) {
+          error = 'caracter inválido'
+        } else if (componentValue < componentsParams[component].min) {
+          error = 'menor que valor mínimo';
+        } else if (componentValue > componentsParams[component].max) {
+          error = 'maior que valor máximo';
+        }
+        if (error) {
+          return {valid: false, component: component, error: error};
+        }
+      }
+    }
+    return {valid: true};
+  };
+
+  this.enableCompile = function() {
     var currentFormat = this.format();
     for (var i in currentFormat.components) {
       var componentValue = currentFormat.componentsValues[currentFormat.components[i]]();
@@ -100,7 +140,14 @@ var ViewModel = function() {
     return true;
   };
 
-  this.add = function() {
+  this.compile = function() {
+    this.error('');
+    var validate = this.validate();
+    if (!validate.valid) {
+      this.error(validate.component + ': ' + validate.error);
+      return;
+    }
+
     var result = '';
     var components = this.format().components;
     for (var i in components) {
@@ -108,7 +155,7 @@ var ViewModel = function() {
       if (component === 'op') {
         result += opcodes[this.format().componentsValues[component]()] + ' ';
       } else {
-        result += getBinary(parseInt(this.format().componentsValues[component]()), componentsBits[component]) + ' ';
+        result += getBinary(parseInt(this.format().componentsValues[component]()), componentsParams[component].bits) + ' ';
       }
     }
     this.results.push(result);

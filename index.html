@@ -16,6 +16,8 @@
     </ul>
   </div>
   
+  <div><button data-bind="click: compile, enable: enableCompile()">Compile</button></div>
+
   <!-- Templates -->
   <!-- types -->
   <script type="text/html" id="R">
@@ -40,7 +42,6 @@
   <!-- partials -->
   <script type="text/html" id="common">
     <div><h3 data-bind="text: $root.formatLabel()"></h3></div>
-    <div><button data-bind="click: $root.compile.bind($root), enable: $root.enableCompile()">Compile</button></div>
     <div><label for="">op</label><select data-bind="options: instructions, value: $root.format().componentsValues.op"></select></div>
   </script>
 

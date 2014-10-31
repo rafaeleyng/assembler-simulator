@@ -1,3 +1,8 @@
+var Instruction = function() {
+  this.format = undefined;
+  
+};
+
 var opcodes = {
   // R
   add:  '100000',

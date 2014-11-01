@@ -1,7 +1,79 @@
-var Instruction = function() {
-  this.format = undefined;
-  
+var Operation = function(operation, type, template) {
+  this.operation = operation;
+  this.type = type;
+  this.template = template ? template : type;
 };
+
+var operations = [
+  new Operation('add', 'R'),
+  new Operation('sub', 'R'),
+  new Operation('and', 'R'),
+  new Operation('or', 'R'),
+  new Operation('not', 'R'),
+  new Operation('slt', 'R'),
+
+  new Operation('addi', 'I', 'I1'),
+  new Operation('subi', 'I', 'I1'),
+  new Operation('andi', 'I', 'I1'),
+  new Operation('ori', 'I', 'I1'),
+  new Operation('noti', 'I', 'I1'),
+  new Operation('slti', 'I', 'I1'),
+  new Operation('beq', 'I', 'I1'),
+
+  new Operation('lw', 'I', 'I2'),
+  new Operation('sw', 'I', 'I2'),
+
+  new Operation('j', 'J')
+];
+
+
+var Instruction = function() {
+  var self = this;
+
+  this.operation = ko.observable();
+  this.operations = ko.observableArray(operations);
+
+  this.template = function() {
+    return this.operation().template;
+  }
+
+  this.components = [];
+};
+
+var registers = [
+  '$0',
+  '$at',
+  '$v0',
+  '$v1',
+  '$a0',
+  '$a1',
+  '$a2',
+  '$a3',
+  '$t0',
+  '$t1',
+  '$t2',
+  '$t3',
+  '$t4',
+  '$t5',
+  '$t6',
+  '$t7',
+  '$s0',
+  '$s1',
+  '$s2',
+  '$s3',
+  '$s4',
+  '$s5',
+  '$s6',
+  '$s7',
+  '$t8',
+  '$t9',
+  '$k0',
+  '$k1',
+  '$gp',
+  '$sp',
+  '$fp',
+  '$ra',
+];
 
 var opcodes = {
   // R
@@ -58,119 +130,36 @@ var Format = function(format, instructions, components) {
   this.componentsValues = componentsValues;
 };
 
-String.prototype.padleft = function(len, chr) {
-  var repeats = len - this.length;
-  var pad = '';
-  for (var i = 0; i < repeats; i++) {
-    pad += chr;
-  }
-  return pad + this;
-};
-
-function getBinary(int, bits) {
-  if (int>=0) {
-    return int.toString(2).padleft(bits, "0");
-  }
-  return (-int-1).toString(2)
-    .replace(/[01]/g, function(d){return +!+d;}) // inverts each char
-    .padleft(bits, "1");
-};
-
 var ViewModel = function() {
 
   var self = this;
 
   this.results = ko.observableArray();
-  this.error = ko.observable();
-  this.format = ko.observable();
 
-  this.formats = [
-    new Format(
-      'R', 
-      ['add', 'sub', 'and', 'or'],
-      ['op', 'rs', 'rt', 'rd', 'shamt', 'funct']
-    ),
-    new Format(
-      'I', 
-      ['addi', 'andi', 'ori'],
-      ['op', 'rs', 'rt', 'imm']
-    ),
-    new Format(
-      'J', 
-      ['j', 'jr'],
-      ['op', 'addr']
-    ),
-  ];
-
-  this.template = function() {
-    return this.format().format;
-  };
-
-  this.formatLabel = function() {
-    return this.format().format + '-Type';
-  };
-
-  this.validate = function() {
-    var components = this.format().components;
-    for (var i in components) {
-      var component = components[i];      
-      if (component !== 'op') {
-        var componentValue = this.format().componentsValues[component]();
-        var error = undefined;
-        if (!componentValue) {
-          error = 'campo não informado';
-        } else if (componentValue.length != componentValue.replace(/[^\d-]/g, '').length) {
-          error = 'caracter inválido'
-        } else if (componentValue < componentsParams[component].min) {
-          error = 'menor que valor mínimo';
-        } else if (componentValue > componentsParams[component].max) {
-          error = 'maior que valor máximo';
-        }
-        if (error) {
-          return {valid: false, component: component, error: error};
-        }
-      }
-    }
-    return {valid: true};
-  };
-
-  this.enableCompile = function() {
-    var currentFormat = this.format();
-    for (var i in currentFormat.components) {
-      var componentValue = currentFormat.componentsValues[currentFormat.components[i]]();
-      if (!componentValue) {
-        return false;
-      }
-    }
-    return true;
-  };
+  this.instructions = ko.observableArray();
+  this.instructions.push(new Instruction());
 
   this.compile = function() {
-    this.error('');
-    var validate = this.validate();
-    if (!validate.valid) {
-      this.error(validate.component + ': ' + validate.error);
-      return;
-    }
+    console.log('compiling');  
+  };
 
-    var result = '';
-    var components = this.format().components;
-    for (var i in components) {
-      var component = components[i];
-      if (component === 'op') {
-        result += opcodes[this.format().componentsValues[component]()] + ' ';
-      } else {
-        result += getBinary(parseInt(this.format().componentsValues[component]()), componentsParams[component].bits) + ' ';
-      }
-    }
-    this.results.push(result);
+  this.clickAdd = function(index) {
+    this.instructions.splice(index + 1, 0, new Instruction());
+  };
+
+  this.clickRemove = function(index) {
+    this.instructions.splice(index, 1);
+  };
+
+  this.enableRemove = function() {
+    return this.instructions().length !== 1;
   };
 
   this.init = function() {
+
   };
   
   this.init();
-
 };
 
 ko.applyBindings(new ViewModel());

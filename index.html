@@ -7,47 +7,48 @@
 </head>
 <body>
   
-  <select data-bind="options: formats, optionsText: 'format', value: format"></select>  
-  <div data-bind="text: error"></div>
-  <div data-bind="template: {name: template(), data: format}"></div>
+  <div data-bind="foreach: instructions">
+    <div class="instruction">
+      <select data-bind="options: operations, optionsText: 'operation', value: operation"></select>  
+      <div data-bind="template: {name: template()}"></div>
+      <div data-bind="template: {name: 'buttons', data: {context: $root, index: $index}}"></div>
+    </div>
+  </div>
+
+  <button data-bind="click: compile">Compile</button>
+
   <div>
     <ul data-bind="foreach: results">
       <li data-bind="text: $data"></li>
     </ul>
   </div>
   
-  <div><button data-bind="click: compile, enable: enableCompile()">Compile</button></div>
-
   <!-- Templates -->
-  <!-- types -->
   <script type="text/html" id="R">
-    <div data-bind="template: {name: 'common', data: $data}"></div>
-    <div data-bind="template: {name: 'rs-rt', data: $data}"></div>
-    <div><label for="">rd</label><input type="text" data-bind="textInput: $root.format().componentsValues.rd"></div>
-    <div><label for="">shamt</label><input type="text" data-bind="textInput: $root.format().componentsValues.shamt"></div>
-    <div><label for="">funct</label><input type="text" data-bind="textInput: $root.format().componentsValues.funct"></div>
+    <select data-bind="options: registers"></select>,
+    <select data-bind="options: registers"></select>, 
+    <select data-bind="options: registers"></select>  
   </script>
 
-  <script type="text/html" id="I">
-    <div data-bind="template: {name: 'common', data: $data}"></div>
-    <div data-bind="template: {name: 'rs-rt', data: $data}"></div>
-    <div><label for="">imm</label><input type="text" data-bind="textInput: $root.format().componentsValues.imm"></div>
+  <script type="text/html" id="I1">
+    <select data-bind="options: registers"></select>,
+    <select data-bind="options: registers"></select>, 
+    <input type="text">
+  </script>
+
+  <script type="text/html" id="I2">
+    <select data-bind="options: registers"></select>,
+    <input type="text">(
+    <select data-bind="options: registers"></select>)
   </script>
 
   <script type="text/html" id="J">
-    <div data-bind="template: {name: 'common', data: $data}"></div>
-    <div><label for="">addr</label><input type="text" data-bind="textInput: $root.format().componentsValues.addr"></div>
+    <input type="text">
   </script>
 
-  <!-- partials -->
-  <script type="text/html" id="common">
-    <div><h3 data-bind="text: $root.formatLabel()"></h3></div>
-    <div><label for="">op</label><select data-bind="options: instructions, value: $root.format().componentsValues.op"></select></div>
-  </script>
-
-  <script type="text/html" id="rs-rt">
-    <div><label for="">rs</label><input type="text" data-bind="textInput: $root.format().componentsValues.rs"></div>
-    <div><label for="">rt</label><input type="text" data-bind="textInput: $root.format().componentsValues.rt"></div>
+  <script type="text/html" id="buttons">
+    <button data-bind="click: context.clickAdd.bind(context, $index())">+</button>
+    <button data-bind="click: context.clickRemove.bind(context, $index()), enable: context.enableRemove()">-</button>
   </script>
 
 	<script src="js/knockout-3.2.0.js"></script>

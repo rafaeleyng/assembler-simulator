@@ -1,43 +1,11 @@
-var Operation = function(operation, type, template) {
+var Operation = function(operation, type, components, template) {
   this.operation = operation;
   this.type = type;
   this.template = template ? template : type;
-};
-
-var operations = [
-  new Operation('add', 'R'),
-  new Operation('sub', 'R'),
-  new Operation('and', 'R'),
-  new Operation('or', 'R'),
-  new Operation('not', 'R'),
-  new Operation('slt', 'R'),
-
-  new Operation('addi', 'I', 'I1'),
-  new Operation('subi', 'I', 'I1'),
-  new Operation('andi', 'I', 'I1'),
-  new Operation('ori', 'I', 'I1'),
-  new Operation('noti', 'I', 'I1'),
-  new Operation('slti', 'I', 'I1'),
-  new Operation('beq', 'I', 'I1'),
-
-  new Operation('lw', 'I', 'I2'),
-  new Operation('sw', 'I', 'I2'),
-
-  new Operation('j', 'J')
-];
-
-
-var Instruction = function() {
-  var self = this;
-
-  this.operation = ko.observable();
-  this.operations = ko.observableArray(operations);
-
-  this.template = function() {
-    return this.operation().template;
-  }
-
-  this.components = [];
+  this.op = components.op;
+  this.funct = components.funct;
+  this.shamt = components.shamt;
+  this.op = components.op;
 };
 
 var registers = [
@@ -75,59 +43,183 @@ var registers = [
   '$ra',
 ];
 
-var opcodes = {
-  // R
-  add:  '100000',
-  sub:  '100010',
-  and:  '100100',
-  or:   '100101',
-
-  // I
-  addi: '001000',
-  andi: '001100',
-  ori:  '001101',
-
-  // J
-  j:    '000010',
-  jr:   '001000',
-};
-
-var Component = function(bits, allowNegative) {
-  this.bits = bits;  
-  var powerResult = Math.pow(2, bits);
-  var min, max;
-  if (allowNegative) {
-    var halfPowerResult = powerResult/2;
-    min = halfPowerResult - powerResult;
-    max = halfPowerResult - 1;
-  } else {
-    min = 0;
-    max = powerResult - 1;
+String.prototype.padleft = function(len, chr) {
+  var repeats = len - this.length;
+  var pad = '';
+  for (var i = 0; i < repeats; i++) {
+    pad += chr;
   }
-  this.min = min;
-  this.max = max;
+  return pad + this;
 };
 
-var componentsParams = {
-  rs: new Component(5),
-  rt: new Component(5),
-  rd: new Component(5),
-  shamt: new Component(5),
-  funct: new Component(6),
-  imm: new Component(16, true),
-  addr: new Component(26),
-};
-
-var Format = function(format, instructions, components) {
-  this.format = format;
-  this.instructions = instructions;
-  this.components = components;
-  var componentsValues = {};
-  for (var i in components) {
-    var component = components[i];
-    componentsValues[component] = ko.observable();
+function intToBinary(int, bits) {
+  int = parseInt(int);
+  if (int>=0) {
+    return int.toString(2).padleft(bits, "0");
   }
-  this.componentsValues = componentsValues;
+  return (-int-1).toString(2)
+    .replace(/[01]/g, function(d){return +!+d;}) // inverts each char
+    .padleft(bits, "1");
+};
+
+var regToBinary = function(reg) {
+  var index = registers.indexOf(reg);
+  return intToBinary(index, 5);
+}
+
+var operations = [
+  new Operation('add', 'R', {op: '000000', shamt: '00000', funct: '100000'}),
+  new Operation('sub', 'R', {op: '000000', shamt: '00000', funct: '100010'}),
+  new Operation('and', 'R', {op: '000000', shamt: '00000', funct: '100100'}),
+  new Operation('or',  'R', {op: '000000', shamt: '00000', funct: '100101'}),
+  // new Operation('not', 'R', {op: '000000', shamt: '00000', funct: ''}),
+  new Operation('slt', 'R', {op: '000000', shamt: '00000', funct: '101010'}),
+
+  new Operation('addi', 'I', {op: '001000'}, 'I1'),
+  // new Operation('subi', 'I', {op: ''}, 'I1'),
+  new Operation('andi', 'I', {op: '001100'}, 'I1'),
+  new Operation('ori',  'I', {op: '001101'}, 'I1'),
+  // new Operation('noti', 'I', 'I1'),
+  new Operation('slti', 'I', {op: '001010'}, 'I1'),
+  new Operation('beq',  'I', {op: '000100'}, 'I1'),
+
+  new Operation('lw', 'I', {op: '100011'}, 'I2'),
+  new Operation('sw', 'I', {op: '101011'}, 'I2'),
+
+  new Operation('j', 'J', {op: '000010'}),
+];
+
+var Instruction = function() {
+  var self = this;
+
+  this.operation = ko.observable();
+
+  this.template = function() {
+    return this.operation().template;
+  }
+
+  this.rs = ko.observable();
+  this.rt = ko.observable();
+  this.rd = ko.observable();
+  this.imm = ko.observable();
+  this.addr = ko.observable();
+
+};
+
+var stringForAssembly = function(assembly, template) {
+  var string, format;
+
+  if (template === 'R') {
+    format = ':0 :1, :2, :3';     
+    string = format
+    .replace(':0', assembly.op)
+    .replace(':1', assembly.rd)
+    .replace(':2', assembly.rs)
+    .replace(':3', assembly.rt)
+    ;
+  } else if (template === 'I1') {
+    format = ':0 :1, :2, :3';
+    string = format
+    .replace(':0', assembly.op)
+    .replace(':1', assembly.rt)
+    .replace(':2', assembly.rs)
+    .replace(':3', assembly.imm)
+    ;
+  } else if (template === 'I2') {
+    format = ':0 :1, :2(:3)';
+    string = format
+    .replace(':0', assembly.op)
+    .replace(':1', assembly.rt)
+    .replace(':2', assembly.imm)
+    .replace(':3', assembly.rs)
+    ;
+  } else if (template === 'J') {
+    format = ':0 :1';
+    string = format
+    .replace(':0', assembly.op)
+    .replace(':1', assembly.imm)
+    ;
+  }
+
+  return string;
+};
+
+var assemblyForInstruction = function(instruction) {
+  var template = instruction.operation().template;
+  var assembly;
+  if (template === 'R') {
+    assembly = {
+      op: instruction.operation().operation,
+      rd: instruction.rd(),
+      rs: instruction.rs(),
+      rt: instruction.rt()
+    };
+  } else if (template === 'I1') {
+    assembly = {
+      op: instruction.operation().operation,
+      rt: instruction.rt(),
+      rs: instruction.rs(),
+      imm: instruction.imm()
+    };
+  } else if (template === 'I2') {
+    assembly = {
+      op: instruction.operation().operation,
+      rt: instruction.rt(),
+      imm: instruction.imm(),
+      rs: instruction.rs()
+    };
+  } else if (template === 'J') {
+    assembly = {
+      op: instruction.operation().operation,
+      imm: instruction.imm()
+    };
+  }
+  return assembly;
+};
+
+var getOperation = function(op) {
+  for (var i in operations) {
+    if (operations[i].operation === op) {
+      return operations[i];
+    }
+  }
+}
+
+var compileAssembly = function(assembly) {
+  var operation = getOperation(assembly.op);
+  var type = operation.type;
+  var compiled, format;
+
+  if (type === 'R') {
+    format = ':0 :1 :2 :3 :4 :5';      
+    compiled = format
+    .replace(':0', operation.op)
+    .replace(':1', regToBinary(assembly.rs))
+    .replace(':2', regToBinary(assembly.rt))
+    .replace(':3', regToBinary(assembly.rd))
+    .replace(':4', operation.shamt)
+    .replace(':5', operation.funct)
+    ;
+  } else if (type === 'I') {
+    console.log('imm', assembly.imm);
+    var bin = intToBinary(assembly.imm, 16);
+    console.log('bin', bin);
+
+    format = ':0 :1 :2 :3';
+    compiled = format
+    .replace(':0', operation.op)
+    .replace(':1', regToBinary(assembly.rs))
+    .replace(':2', regToBinary(assembly.rt))
+    .replace(':3', intToBinary(assembly.imm, 16))
+    ;
+  } else if (type === 'J') {
+    format = ':0 :1';
+    compiled = format
+    .replace(':0', operation.op)
+    .replace(':1', intToBinary(assembly.imm, 26))
+    ;
+  }
+  return compiled;
 };
 
 var ViewModel = function() {
@@ -139,8 +231,26 @@ var ViewModel = function() {
   this.instructions = ko.observableArray();
   this.instructions.push(new Instruction());
 
+  this.operations = ko.observableArray(operations);
+
   this.compile = function() {
-    console.log('compiling');  
+    this.cleanResults();
+    var result = [];
+    for (var i in this.instructions()) {
+      
+      var instruction = this.instructions()[i];
+      var assembly = assemblyForInstruction(instruction);
+      var assemblyString = stringForAssembly(assembly, instruction.operation().template);
+      var compiled = compileAssembly(assembly);
+
+      /*
+      console.log('assembly', assembly);
+      console.log('assemblyString', assemblyString);
+      console.log('compiled', compiled);
+      */
+
+      this.results.push(compiled);
+    }
   };
 
   this.clickAdd = function(index) {
@@ -153,6 +263,10 @@ var ViewModel = function() {
 
   this.enableRemove = function() {
     return this.instructions().length !== 1;
+  };
+
+  this.cleanResults = function() {
+    this.results.removeAll();
   };
 
   this.init = function() {

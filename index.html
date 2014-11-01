@@ -9,46 +9,47 @@
   
   <div data-bind="foreach: instructions">
     <div class="instruction">
-      <select data-bind="options: operations, optionsText: 'operation', value: operation"></select>  
+      <select data-bind="options: $root.operations, optionsText: 'operation', value: operation"></select>  
       <div data-bind="template: {name: template()}"></div>
-      <div data-bind="template: {name: 'buttons', data: {context: $root, index: $index}}"></div>
+      <div data-bind="template: {name: 'buttons', data: {parent: $root, index: $index}}"></div>
     </div>
   </div>
 
   <button data-bind="click: compile">Compile</button>
 
-  <div>
+  <div class="row">
     <ul data-bind="foreach: results">
       <li data-bind="text: $data"></li>
     </ul>
   </div>
+  <button data-bind="click: cleanResults">Limpar</button>
   
   <!-- Templates -->
   <script type="text/html" id="R">
-    <select data-bind="options: registers"></select>,
-    <select data-bind="options: registers"></select>, 
-    <select data-bind="options: registers"></select>  
+    <select data-bind="options: registers, value: rd"></select>,
+    <select data-bind="options: registers, value: rs"></select>, 
+    <select data-bind="options: registers, value: rt"></select>  
   </script>
 
   <script type="text/html" id="I1">
-    <select data-bind="options: registers"></select>,
-    <select data-bind="options: registers"></select>, 
-    <input type="text">
+    <select data-bind="options: registers, value: rt"></select>,
+    <select data-bind="options: registers, value: rs"></select>,
+    <input type="text" data-bind="value: imm">
   </script>
 
   <script type="text/html" id="I2">
-    <select data-bind="options: registers"></select>,
-    <input type="text">(
-    <select data-bind="options: registers"></select>)
+    <select data-bind="options: registers, value: rt"></select>,
+    <input type="text" data-bind="value: imm">(
+    <select data-bind="options: registers, value: rs"></select>)
   </script>
 
   <script type="text/html" id="J">
-    <input type="text">
+    <input type="text" data-bind="value: imm">
   </script>
 
   <script type="text/html" id="buttons">
-    <button data-bind="click: context.clickAdd.bind(context, $index())">+</button>
-    <button data-bind="click: context.clickRemove.bind(context, $index()), enable: context.enableRemove()">-</button>
+    <button data-bind="click: parent.clickAdd.bind(parent, $index())">+</button>
+    <button data-bind="click: parent.clickRemove.bind(parent, $index()), enable: parent.enableRemove()">-</button>
   </script>
 
 	<script src="js/knockout-3.2.0.js"></script>

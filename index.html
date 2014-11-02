@@ -9,25 +9,29 @@
 </head>
 <body>
   <div class="container">
-  
-    <ul class="nav nav-tabs" role="tablist">
+    
+    <div class="page-header">
+      <h1>Assembler Simulator</h1>
+    </div>        
+    
+    <ul class="nav nav-tabs section" role="tablist">
       <li role="presentation" data-bind="css: {active: isSelectedTab(tabs.text)}">
-        <a href="#" data-bind="click: selectTab.bind($root, tabs.text)">Texto</a>
+        <a href="#" data-bind="click: selectTab.bind($root, tabs.text)">Código-Fonte</a>
       </li>
       <li role="presentation" data-bind="css: {active: isSelectedTab(tabs.fields)}">
-        <a href="#" data-bind="click: selectTab.bind($root, tabs.fields)">Campos</a>
+        <a href="#" data-bind="click: selectTab.bind($root, tabs.fields)">Wizard</a>
       </li>
     </ul>
 
     <!-- tab 0 -->
-    <div class="row" data-bind="visible: isSelectedTab(tabs.text)">
+    <div class="row section" data-bind="visible: isSelectedTab(tabs.text)">
       <div class="col-md-12">
         <textarea name="" id="" cols="30" rows="10" data-bind="value: textarea" class="form-control"></textarea>
       </div>
     </div>
     
     <!-- tab 1 -->
-    <div data-bind="visible: isSelectedTab(tabs.fields)">
+    <div data-bind="visible: isSelectedTab(tabs.fields)" class="section">
       <div data-bind="foreach: instructions">
         <div class="row">
 
@@ -50,7 +54,7 @@
     </div>
     
     <!-- buttons -->
-    <div class="row">
+    <div class="row section">
       <div class="col-md-6">
         <button data-bind="click: compile" class="btn btn-primary">Compilar</button>
         <button data-bind="click: cleanResults" class="btn btn-default">Limpar</button>        
@@ -93,19 +97,33 @@
   </script>
 
   <script type="text/html" id="I1">
-    <select data-bind="options: registers, value: rt" class="form-control"></select>,
-    <select data-bind="options: registers, value: rs" class="form-control"></select>,
-    <input type="text" data-bind="value: imm">
+    <div class="col-md-4">
+      <select data-bind="options: registers, value: rt" class="form-control"></select>
+    </div>
+    <div class="col-md-4">
+      <select data-bind="options: registers, value: rs" class="form-control"></select>
+    </div>
+    <div class="col-md-4">
+      <input type="text" data-bind="value: imm" class="form-control">
+    </div>
   </script>
 
   <script type="text/html" id="I2">
-    <select data-bind="options: registers, value: rt" class="form-control"></select>,
-    <input type="text" data-bind="value: imm">(
-    <select data-bind="options: registers, value: rs" class="form-control"></select>)
+    <div class="col-md-4">
+      <select data-bind="options: registers, value: rt" class="form-control"></select>
+    </div>
+    <div class="col-md-4">
+      <input type="text" data-bind="value: imm" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <select data-bind="options: registers, value: rs" class="form-control"></select>
+    </div>
   </script>
 
   <script type="text/html" id="J">
-    <input type="text" data-bind="value: imm">
+    <div class="col-md-4">
+      <input type="text" data-bind="value: imm" class="form-control">
+    </div>
   </script>
 
   <!-- JS -->

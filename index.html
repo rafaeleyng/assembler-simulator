@@ -30,15 +30,22 @@
     <div data-bind="visible: isSelectedTab(tabs.fields)">
       <div data-bind="foreach: instructions">
         <div class="row">
+
           <div class="col-sm-2">
             <select data-bind="options: $root.operations, optionsText: 'operation', value: operation" class="form-control"></select>
+          </div>          
+
+          <div class="col-sm-8">            
+            <div class="row" data-bind="template: {name: template()}">          
+            </div>
           </div>
-          <div class="col-md-2">
+
+          <div class="col-sm-2">
             <button data-bind="click: $root.clickAdd.bind($root, $index())" class="btn btn-default">+</button>
             <button data-bind="click: $root.clickRemove.bind($root, $index()), enable: $root.enableRemove()" class="btn btn-default">-</button>
-          </div>          
+          </div>
+
         </div>
-        <div class="row" data-bind="template: {name: template()}"></div>
       </div>
     </div>
     
@@ -93,13 +100,13 @@
   
   <!-- Templates -->
   <script type="text/html" id="R">
-    <div class="col-md-2">
+    <div class="col-md-4">
       <select data-bind="options: registers, value: rd" class="form-control"></select>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-4">
       <select data-bind="options: registers, value: rs" class="form-control"></select>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-4">
       <select data-bind="options: registers, value: rt" class="form-control"></select>  
     </div>
   </script>

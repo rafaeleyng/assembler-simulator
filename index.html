@@ -62,36 +62,17 @@
 
       <div class="col-md-2">
         <div>Assembly</div>
-        <ul data-bind="foreach: results.assembly">
-          <li>
-            <div>
-              <pre data-bind="text: $data"></pre>
-            </div>
-          </li>
-        </ul>
+        <pre data-bind="text: results.assembly"></pre>
       </div>
 
       <div class="col-md-5">
         <div>Binário (compilado)</div>
-        <ul data-bind="foreach: results.compiled">
-          <li>
-            <div>
-              <pre data-bind="text: $data"></pre>
-            </div>
-          </li>
-        </ul>
+        <pre data-bind="text: results.compiled"></pre>
       </div>
 
       <div class="col-md-5">
         <div>Sinais</div>
-        <!-- <ul data-bind="foreach: results.signals"> -->
-        <ul data-bind="foreach: results.compiled">
-          <li>
-            <div>
-              <pre data-bind="">signals</pre>
-            </div>
-          </li>
-        </ul>
+        <pre data-bind="text: results.signals"></pre>
       </div>
 
     </div>

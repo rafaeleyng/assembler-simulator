@@ -273,10 +273,11 @@ var ViewModel = function() {
   };
 
   this.results = {
-    compiled: ko.observableArray(),
-    assembly: ko.observableArray(),
-    signals: ko.observableArray(),
+    compiled: ko.observable(''),
+    assembly: ko.observable(''),
+    signals: ko.observable(''),
   };
+
   this.instructions = ko.observableArray();
   this.instructions.push(new Instruction());
   this.operations = ko.observableArray(operations);
@@ -288,27 +289,48 @@ var ViewModel = function() {
       return;
     }
 
+    var resultAssembly = '';
+    var resultCompiled = '';
+    var resultSignals = '';
+
     var lines = text.split('\n');
     for (var i in lines) {
       var assemblyLine = lines[i];
       var assemblyObj = assemblyForInstructionString(assemblyLine);
       console.log(assemblyLine);
       var compiled = compileAssembly(assemblyObj);
-      this.results.compiled.push(compiled);
-      this.results.assembly.push(assemblyLine);
+
+      resultAssembly += assemblyLine + '\n';
+      resultCompiled += compiled + '\n';
+      resultSignals += 'signals \n';
     }
+
+    this.results.assembly(resultAssembly);
+    this.results.compiled(resultCompiled);
+    this.results.signals(resultSignals);
   };
 
   this.compileFromFields = function() {
+
+    var resultAssembly = '';
+    var resultCompiled = '';
+    var resultSignals = '';
+
     for (var i in this.instructions()) {      
       var instruction = this.instructions()[i];
       var assemblyObj = assemblyForInstructionObject(instruction);
       var assemblyLine = stringForAssembly(assemblyObj, instruction.operation().template);
       console.log(assemblyLine);
       var compiled = compileAssembly(assemblyObj);
-      this.results.compiled.push(compiled);
-      this.results.assembly.push(assemblyLine);
+
+      resultAssembly += assemblyLine + '\n';
+      resultCompiled += compiled + '\n';
+      resultSignals += 'signals \n';
     }
+
+    this.results.assembly(resultAssembly);
+    this.results.compiled(resultCompiled);
+    this.results.signals(resultSignals);    
   };
 
   this.compile = function() {
@@ -334,7 +356,7 @@ var ViewModel = function() {
 
   this.cleanResults = function() {
     for (var i in this.results) {
-      this.results[i].removeAll();
+      this.results[i]('');
     }
   };
 

@@ -10,35 +10,44 @@
 <body>
   <div class="container">
   
-    <div class="row">
-      <a href="#" data-bind="click: selectTab.bind($root, 0)">Campos</a> | 
-      <a href="#" data-bind="click: selectTab.bind($root, 1)">Texto</a>
-    </div>
+    <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" data-bind="css: {active: isSelectedTab(tabs.text)}">
+        <a href="#" data-bind="click: selectTab.bind($root, tabs.text)">Texto</a>
+      </li>
+      <li role="presentation" data-bind="css: {active: isSelectedTab(tabs.fields)}">
+        <a href="#" data-bind="click: selectTab.bind($root, tabs.fields)">Campos</a>
+      </li>
+    </ul>
 
     <!-- tab 0 -->
-    <div class="row">
-      <div class="tab1" data-bind="visible: isSelectedTab(0)">
-        <div data-bind="foreach: instructions">
-          <div class="instruction">
-            <select data-bind="options: $root.operations, optionsText: 'operation', value: operation"></select>  
-            <div class="input-template" data-bind="template: {name: template()}"></div>
-            <div class="input-template" data-bind="template: {name: 'buttons', data: {parent: $root, index: $index}}"></div>
-          </div>
-        </div>
+    <div class="row" data-bind="visible: isSelectedTab(tabs.text)">
+      <div class="col-md-12">
+        <textarea name="" id="" cols="30" rows="10" data-bind="value: textarea" class="form-control"></textarea>
       </div>
     </div>
     
     <!-- tab 1 -->
-    <div class="row">
-      <div class="tab2" data-bind="visible: isSelectedTab(1)">
-        <textarea name="" id="" cols="30" rows="10" data-bind="value: textarea"></textarea>
+    <div data-bind="visible: isSelectedTab(tabs.fields)">
+      <div data-bind="foreach: instructions">
+        <div class="row">
+          <div class="col-sm-2">
+            <select data-bind="options: $root.operations, optionsText: 'operation', value: operation" class="form-control"></select>
+          </div>
+          <div class="col-md-2">
+            <button data-bind="click: $root.clickAdd.bind($root, $index())" class="btn btn-default">+</button>
+            <button data-bind="click: $root.clickRemove.bind($root, $index()), enable: $root.enableRemove()" class="btn btn-default">-</button>
+          </div>          
+        </div>
+        <div class="row" data-bind="template: {name: template()}"></div>
       </div>
     </div>
     
     <!-- buttons -->
     <div class="row">
-      <button data-bind="click: compile">Compilar</button>
-      <button data-bind="click: cleanResults">Limpar</button>
+      <div class="col-md-6">
+        <button data-bind="click: compile" class="btn btn-primary">Compilar</button>
+        <button data-bind="click: cleanResults" class="btn btn-default">Limpar</button>        
+      </div>
     </div>
 
     <!-- result -->
@@ -84,30 +93,31 @@
   
   <!-- Templates -->
   <script type="text/html" id="R">
-    <select data-bind="options: registers, value: rd"></select>,
-    <select data-bind="options: registers, value: rs"></select>, 
-    <select data-bind="options: registers, value: rt"></select>  
+    <div class="col-md-2">
+      <select data-bind="options: registers, value: rd" class="form-control"></select>
+    </div>
+    <div class="col-md-2">
+      <select data-bind="options: registers, value: rs" class="form-control"></select>
+    </div>
+    <div class="col-md-2">
+      <select data-bind="options: registers, value: rt" class="form-control"></select>  
+    </div>
   </script>
 
   <script type="text/html" id="I1">
-    <select data-bind="options: registers, value: rt"></select>,
-    <select data-bind="options: registers, value: rs"></select>,
+    <select data-bind="options: registers, value: rt" class="form-control"></select>,
+    <select data-bind="options: registers, value: rs" class="form-control"></select>,
     <input type="text" data-bind="value: imm">
   </script>
 
   <script type="text/html" id="I2">
-    <select data-bind="options: registers, value: rt"></select>,
+    <select data-bind="options: registers, value: rt" class="form-control"></select>,
     <input type="text" data-bind="value: imm">(
-    <select data-bind="options: registers, value: rs"></select>)
+    <select data-bind="options: registers, value: rs" class="form-control"></select>)
   </script>
 
   <script type="text/html" id="J">
     <input type="text" data-bind="value: imm">
-  </script>
-
-  <script type="text/html" id="buttons">
-    <button data-bind="click: parent.clickAdd.bind(parent, $index())">+</button>
-    <button data-bind="click: parent.clickRemove.bind(parent, $index()), enable: parent.enableRemove()">-</button>
   </script>
 
   <!-- JS -->

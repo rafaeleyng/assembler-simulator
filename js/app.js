@@ -267,11 +267,16 @@ var ViewModel = function() {
 
   var self = this;
 
+  this.tabs = {
+    text: 0,
+    fields: 1,
+  };
+
   this.results = {
     compiled: ko.observableArray(),
     assembly: ko.observableArray(),
     signals: ko.observableArray(),
-  }; 
+  };
   this.instructions = ko.observableArray();
   this.instructions.push(new Instruction());
   this.operations = ko.observableArray(operations);
@@ -308,7 +313,7 @@ var ViewModel = function() {
 
   this.compile = function() {
     this.cleanResults();
-    if (this.selectedTab() === 0) {
+    if (this.selectedTab() === this.tabs.fields) {
       this.compileFromFields();
     } else {
       this.compileFromTextarea();

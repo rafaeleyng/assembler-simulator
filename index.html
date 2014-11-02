@@ -3,39 +3,83 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Assembler</title>
-  <link rel="stylesheet" type="text/css" href="css/app.css">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
+  <div class="container">
   
-  <a href="#" data-bind="click: selectTab.bind($root, 0)">Campos</a> | 
-  <a href="#" data-bind="click: selectTab.bind($root, 1)">Texto</a>
-  <br>
-  <br>
+    <div class="row">
+      <a href="#" data-bind="click: selectTab.bind($root, 0)">Campos</a> | 
+      <a href="#" data-bind="click: selectTab.bind($root, 1)">Texto</a>
+    </div>
 
-  <!-- tab 0 -->
-  <div class="tab1" data-bind="visible: isSelectedTab(0)">
-    <div data-bind="foreach: instructions">
-      <div class="instruction">
-        <select data-bind="options: $root.operations, optionsText: 'operation', value: operation"></select>  
-        <div class="input-template" data-bind="template: {name: template()}"></div>
-        <div class="input-template" data-bind="template: {name: 'buttons', data: {parent: $root, index: $index}}"></div>
+    <!-- tab 0 -->
+    <div class="row">
+      <div class="tab1" data-bind="visible: isSelectedTab(0)">
+        <div data-bind="foreach: instructions">
+          <div class="instruction">
+            <select data-bind="options: $root.operations, optionsText: 'operation', value: operation"></select>  
+            <div class="input-template" data-bind="template: {name: template()}"></div>
+            <div class="input-template" data-bind="template: {name: 'buttons', data: {parent: $root, index: $index}}"></div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+    
+    <!-- tab 1 -->
+    <div class="row">
+      <div class="tab2" data-bind="visible: isSelectedTab(1)">
+        <textarea name="" id="" cols="30" rows="10" data-bind="value: textarea"></textarea>
+      </div>
+    </div>
+    
+    <!-- buttons -->
+    <div class="row">
+      <button data-bind="click: compile">Compilar</button>
+      <button data-bind="click: cleanResults">Limpar</button>
+    </div>
 
-  <!-- tab 1 -->
-  <div class="tab2" data-bind="visible: isSelectedTab(1)">
-    <textarea name="" id="" cols="30" rows="10" data-bind="value: textarea"></textarea>
-  </div>
-  
-  <!-- result -->
-  <button data-bind="click: compile">Compilar</button>
-  <button data-bind="click: cleanResults">Limpar</button>
+    <!-- result -->
+    <div class="row" data-bind="visible: results.assembly().length > 0">  
 
-  <div class="row">
-    <ul data-bind="foreach: results">
-      <li data-bind="text: $data"></li>
-    </ul>
+      <div class="col-md-2">
+        <div>Assembly</div>
+        <ul data-bind="foreach: results.assembly">
+          <li>
+            <div>
+              <pre data-bind="text: $data"></pre>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-5">
+        <div>Binário (compilado)</div>
+        <ul data-bind="foreach: results.compiled">
+          <li>
+            <div>
+              <pre data-bind="text: $data"></pre>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-5">
+        <div>Sinais</div>
+        <!-- <ul data-bind="foreach: results.signals"> -->
+        <ul data-bind="foreach: results.compiled">
+          <li>
+            <div>
+              <pre data-bind="">signals</pre>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
   </div>
   
   <!-- Templates -->
@@ -66,7 +110,10 @@
     <button data-bind="click: parent.clickRemove.bind(parent, $index()), enable: parent.enableRemove()">-</button>
   </script>
 
+  <!-- JS -->
+  <script src="js/jquery-2.1.1.min.js"></script>
 	<script src="js/knockout-3.2.0.js"></script>
+  <script src="js/bootstrap.min.js"></script>
 	<script src="js/app.js"></script>
 </body>
 </html>

@@ -152,26 +152,26 @@ var assemblyForInstructionObject = function(instruction) {
       op: instruction.operation().operation,
       rd: instruction.rd(),
       rs: instruction.rs(),
-      rt: instruction.rt()
+      rt: instruction.rt(),
     };
   } else if (template === 'I1') {
     assembly = {
       op: instruction.operation().operation,
       rt: instruction.rt(),
       rs: instruction.rs(),
-      imm: instruction.imm()
+      imm: instruction.imm() || 0,
     };
   } else if (template === 'I2') {
     assembly = {
       op: instruction.operation().operation,
       rt: instruction.rt(),
-      imm: instruction.imm(),
+      imm: instruction.imm() || 0,
       rs: instruction.rs()
     };
   } else if (template === 'J') {
     assembly = {
       op: instruction.operation().operation,
-      imm: instruction.imm()
+      imm: instruction.imm() || 0,
     };
   }
   return assembly;
@@ -218,8 +218,7 @@ var assemblyForInstructionString = function(string) {
       imm: parts[1]
     };
   }
-  return assembly;  
-
+  return assembly;
 };
 
 var getOperationWithName = function(op) {
@@ -268,7 +267,11 @@ var ViewModel = function() {
 
   var self = this;
 
-  this.results = ko.observableArray();
+  this.results = {
+    compiled: ko.observableArray(),
+    assembly: ko.observableArray(),
+    signals: ko.observableArray(),
+  }; 
   this.instructions = ko.observableArray();
   this.instructions.push(new Instruction());
   this.operations = ko.observableArray(operations);
@@ -276,14 +279,18 @@ var ViewModel = function() {
 
   this.compileFromTextarea = function() {
     var text = this.textarea();
-    if (!text) {return;}
+    if (!text) {
+      return;
+    }
+
     var lines = text.split('\n');
     for (var i in lines) {
       var assemblyLine = lines[i];
-      var assembly = assemblyForInstructionString(assemblyLine);
+      var assemblyObj = assemblyForInstructionString(assemblyLine);
       console.log(assemblyLine);
-      var compiled = compileAssembly(assembly);
-      this.results.push(compiled);
+      var compiled = compileAssembly(assemblyObj);
+      this.results.compiled.push(compiled);
+      this.results.assembly.push(assemblyLine);
     }
   };
 
@@ -294,7 +301,8 @@ var ViewModel = function() {
       var assemblyLine = stringForAssembly(assemblyObj, instruction.operation().template);
       console.log(assemblyLine);
       var compiled = compileAssembly(assemblyObj);
-      this.results.push(compiled);
+      this.results.compiled.push(compiled);
+      this.results.assembly.push(assemblyLine);
     }
   };
 
@@ -320,7 +328,9 @@ var ViewModel = function() {
   };
 
   this.cleanResults = function() {
-    this.results.removeAll();
+    for (var i in this.results) {
+      this.results[i].removeAll();
+    }
   };
 
   // tabs

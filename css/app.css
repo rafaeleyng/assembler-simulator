@@ -6,11 +6,18 @@ a {
   display: inline-block;
 }
 
-.row {
-  display: block;
-}
-
 .instruction {
   display: block;
   margin-bottom: 20px;
+}
+
+ul,
+li { 
+  padding: 0;
+  margin: 0;
+
+}
+
+.result-li {
+  display: inline-block;
 }

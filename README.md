@@ -5,6 +5,8 @@ Just a college project. A mini assembler simulator. Text bellow is written in pt
 
 Trabalho para a disciplina de Arquitetura e Organização de Computadores da [Unisinos](http://www.unisinos.br/).
 
+[Live Preview](http://rafaeleyng.github.io/assembler-simulator/).
+
 Bibliotecas utilizadas:
 
 * Knockout JavaScript v3.2.0

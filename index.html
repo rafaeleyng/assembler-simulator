@@ -7,22 +7,36 @@
 </head>
 <body>
   
-  <div data-bind="foreach: instructions">
-    <div class="instruction">
-      <select data-bind="options: $root.operations, optionsText: 'operation', value: operation"></select>  
-      <div data-bind="template: {name: template()}"></div>
-      <div data-bind="template: {name: 'buttons', data: {parent: $root, index: $index}}"></div>
+  <a href="#" data-bind="click: selectTab.bind($root, 0)">Campos</a> | 
+  <a href="#" data-bind="click: selectTab.bind($root, 1)">Texto</a>
+  <br>
+  <br>
+
+  <!-- tab 0 -->
+  <div class="tab1" data-bind="visible: isSelectedTab(0)">
+    <div data-bind="foreach: instructions">
+      <div class="instruction">
+        <select data-bind="options: $root.operations, optionsText: 'operation', value: operation"></select>  
+        <div class="input-template" data-bind="template: {name: template()}"></div>
+        <div class="input-template" data-bind="template: {name: 'buttons', data: {parent: $root, index: $index}}"></div>
+      </div>
     </div>
   </div>
 
-  <button data-bind="click: compile">Compile</button>
+  <!-- tab 1 -->
+  <div class="tab2" data-bind="visible: isSelectedTab(1)">
+    <textarea name="" id="" cols="30" rows="10" data-bind="value: textarea"></textarea>
+  </div>
+  
+  <!-- result -->
+  <button data-bind="click: compile">Compilar</button>
+  <button data-bind="click: cleanResults">Limpar</button>
 
   <div class="row">
     <ul data-bind="foreach: results">
       <li data-bind="text: $data"></li>
     </ul>
   </div>
-  <button data-bind="click: cleanResults">Limpar</button>
   
   <!-- Templates -->
   <script type="text/html" id="R">

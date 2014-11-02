@@ -144,7 +144,7 @@ var stringForAssembly = function(assembly, template) {
   return string;
 };
 
-var assemblyForInstruction = function(instruction) {
+var assemblyForInstructionObject = function(instruction) {
   var template = instruction.operation().template;
   var assembly;
   if (template === 'R') {
@@ -177,16 +177,61 @@ var assemblyForInstruction = function(instruction) {
   return assembly;
 };
 
-var getOperation = function(op) {
+var assemblyForInstructionString = function(string) {
+  var parts = string
+  .replace(',', '')
+  .replace(',', '') // TODO arrumar isso
+  .replace('(', '')
+  .replace(')', '')
+  .split(' ')
+  ;
+
+  var op = parts[0];
+  var operation = getOperationWithName(op);
+  var template = operation.template;
+
+  var assembly;
+  if (template === 'R') {
+    assembly = {
+      op: op,
+      rd: parts[1],
+      rs: parts[2],
+      rt: parts[3]
+    };
+  } else if (template === 'I1') {
+    assembly = {
+      op: op,
+      rt: parts[1],
+      rs: parts[2],
+      imm: parts[3]
+    };
+  } else if (template === 'I2') {
+    assembly = {
+      op: op,
+      rt: parts[1],
+      imm: parts[2],
+      rs: parts[3]
+    };
+  } else if (template === 'J') {
+    assembly = {
+      op: op,
+      imm: parts[1]
+    };
+  }
+  return assembly;  
+
+};
+
+var getOperationWithName = function(op) {
   for (var i in operations) {
     if (operations[i].operation === op) {
       return operations[i];
     }
   }
-}
+};
 
 var compileAssembly = function(assembly) {
-  var operation = getOperation(assembly.op);
+  var operation = getOperationWithName(assembly.op);
   var type = operation.type;
   var compiled, format;
 
@@ -201,10 +246,6 @@ var compileAssembly = function(assembly) {
     .replace(':5', operation.funct)
     ;
   } else if (type === 'I') {
-    console.log('imm', assembly.imm);
-    var bin = intToBinary(assembly.imm, 16);
-    console.log('bin', bin);
-
     format = ':0 :1 :2 :3';
     compiled = format
     .replace(':0', operation.op)
@@ -219,6 +260,7 @@ var compileAssembly = function(assembly) {
     .replace(':1', intToBinary(assembly.imm, 26))
     ;
   }
+  console.log(compiled);
   return compiled;
 };
 
@@ -227,29 +269,41 @@ var ViewModel = function() {
   var self = this;
 
   this.results = ko.observableArray();
-
   this.instructions = ko.observableArray();
   this.instructions.push(new Instruction());
-
   this.operations = ko.observableArray(operations);
+  this.textarea = ko.observable();
+
+  this.compileFromTextarea = function() {
+    var text = this.textarea();
+    if (!text) {return;}
+    var lines = text.split('\n');
+    for (var i in lines) {
+      var assemblyLine = lines[i];
+      var assembly = assemblyForInstructionString(assemblyLine);
+      console.log(assemblyLine);
+      var compiled = compileAssembly(assembly);
+      this.results.push(compiled);
+    }
+  };
+
+  this.compileFromFields = function() {
+    for (var i in this.instructions()) {      
+      var instruction = this.instructions()[i];
+      var assemblyObj = assemblyForInstructionObject(instruction);
+      var assemblyLine = stringForAssembly(assemblyObj, instruction.operation().template);
+      console.log(assemblyLine);
+      var compiled = compileAssembly(assemblyObj);
+      this.results.push(compiled);
+    }
+  };
 
   this.compile = function() {
     this.cleanResults();
-    var result = [];
-    for (var i in this.instructions()) {
-      
-      var instruction = this.instructions()[i];
-      var assembly = assemblyForInstruction(instruction);
-      var assemblyString = stringForAssembly(assembly, instruction.operation().template);
-      var compiled = compileAssembly(assembly);
-
-      /*
-      console.log('assembly', assembly);
-      console.log('assemblyString', assemblyString);
-      console.log('compiled', compiled);
-      */
-
-      this.results.push(compiled);
+    if (this.selectedTab() === 0) {
+      this.compileFromFields();
+    } else {
+      this.compileFromTextarea();
     }
   };
 
@@ -267,6 +321,15 @@ var ViewModel = function() {
 
   this.cleanResults = function() {
     this.results.removeAll();
+  };
+
+  // tabs
+  this.selectedTab = ko.observable(0);
+  this.selectTab = function(tab) {
+    this.selectedTab(tab);
+  };
+  this.isSelectedTab = function(tab) {
+    return this.selectedTab() === tab;
   };
 
   this.init = function() {

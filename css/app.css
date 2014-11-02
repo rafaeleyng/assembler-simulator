@@ -1,4 +1,8 @@
-div {
+a { 
+  text-decoration: none;
+}
+
+.input-template {
   display: inline-block;
 }
 

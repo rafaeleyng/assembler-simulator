@@ -4,6 +4,13 @@ li {
   margin: 0;
 }
 
+input,
+select,
+option,
+textarea {
+  font-family:monospace;
+}
+
 .section {
   margin-bottom: 20px;
 }

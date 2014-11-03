@@ -5,6 +5,7 @@
 	<title>Assembler</title>
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/sticky-footer.css">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -63,7 +64,6 @@
 
     <!-- result -->
     <div class="row" data-bind="visible: results.assembly().length > 0">  
-
       <div class="col-md-2">
         <div>Assembly</div>
         <pre data-bind="text: results.assembly"></pre>
@@ -78,9 +78,20 @@
         <div>Sinais</div>
         <pre data-bind="text: results.signals"></pre>
       </div>
-
     </div>
 
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-offset-4 col-md-4 text-center">
+          <a href="https://github.com/rafaeleyng/assembler-simulator" target="_blank">
+            <img src="img/github-icon.png" alt=""> Source on Github
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
   
   <!-- Templates -->

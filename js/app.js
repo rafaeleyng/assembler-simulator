@@ -52,6 +52,14 @@ String.prototype.padleft = function(len, chr) {
   return pad + this;
 };
 
+function validateRange(number, bits) {
+  var pow = Math.pow(2, bits);
+  var half = pow/2;
+  var min = -half;
+  var max = half - 1;
+  return min <= number && number <= max; 
+};
+
 function intToBinary(int, bits) {
   int = parseInt(int);
   if (int>=0) {
@@ -147,6 +155,12 @@ var stringForAssembly = function(assembly, template) {
 var assemblyForInstructionObject = function(instruction) {
   var template = instruction.operation().template;
   var assembly;
+
+  var imm = Number(instruction.imm());
+  if (Number.isNaN(imm)) {
+    throw 'Invalid imm: ' + instruction.imm();
+  }
+
   if (template === 'R') {
     assembly = {
       op: instruction.operation().operation,
@@ -275,12 +289,14 @@ var ViewModel = function() {
     signals: ko.observable(''),
   };
 
+  this.error = ko.observable('');
+
   this.instructions = ko.observableArray();
   this.instructions.push(new Instruction());
   this.operations = ko.observableArray(operations);
   this.textarea = ko.observable();
 
-  this.compileFromTextarea = function() {
+  this.compileFromText = function() {
     var text = this.textarea();
     if (!text) {
       return;
@@ -331,11 +347,15 @@ var ViewModel = function() {
   };
 
   this.compile = function() {
-    this.cleanResults();
-    if (this.selectedTab() === this.tabs.fields) {
-      this.compileFromFields();
-    } else {
-      this.compileFromTextarea();
+    try {
+      this.cleanResults();
+      if (this.selectedTab() === this.tabs.text) {
+        this.compileFromText();
+      } else {
+        this.compileFromFields();
+      }      
+    } catch (e) {
+      this.error(e);
     }
   };
 

@@ -62,8 +62,14 @@
       </div>
     </div>
 
+    <div class="row section" data-bind="visible: error">
+      <div class="col-md-12">
+        <pre class="text-danger bg-danger" data-bind="text: error">Erro</pre>
+      </div>      
+    </div>
+
     <!-- result -->
-    <div class="row" data-bind="visible: results.assembly().length > 0">  
+    <div class="row section" data-bind="visible: results.assembly().length > 0">  
       <div class="col-md-2">
         <div>Assembly</div>
         <pre data-bind="text: results.assembly"></pre>
@@ -95,7 +101,7 @@
     </div>
   </div>
   --> 
-  
+
   <!-- Templates -->
   <script type="text/html" id="R">
     <div class="col-md-4">

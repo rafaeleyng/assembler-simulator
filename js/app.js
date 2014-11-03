@@ -8,6 +8,11 @@ var Operation = function(operation, type, components, template) {
   this.op = components.op;
 };
 
+var immediateBits = {
+  I: 16,
+  J: 26,
+};
+
 var registers = [
   '$0',
   '$at',
@@ -52,12 +57,17 @@ String.prototype.padleft = function(len, chr) {
   return pad + this;
 };
 
-function validateRange(number, bits) {
+function getRange(bits) {
   var pow = Math.pow(2, bits);
   var half = pow/2;
   var min = -half;
   var max = half - 1;
-  return min <= number && number <= max; 
+  return {min: min, max: max};  
+};
+
+function validateRange(number, bits) {
+  var range = getRange(bits);
+  return range.min <= number && number <= range.max; 
 };
 
 function intToBinary(int, bits) {
@@ -114,84 +124,53 @@ var Instruction = function() {
 
 };
 
-var stringForAssembly = function(assembly, template) {
-  var string, format;
+var assemblyStrForInstruction = function(instruction) {
+  var template = instruction.operation().template;
+  var type = instruction.operation().type;
+
+  var imm = Number(instruction.imm());
+  var op = instruction.operation().operation;
+  var rd = instruction.rd();
+  var rs = instruction.rs();
+  var rt = instruction.rt();
 
   if (template === 'R') {
     format = ':0 :1, :2, :3';     
-    string = format
-    .replace(':0', assembly.op)
-    .replace(':1', assembly.rd)
-    .replace(':2', assembly.rs)
-    .replace(':3', assembly.rt)
+    return format
+    .replace(':0', op)
+    .replace(':1', rd)
+    .replace(':2', rs)
+    .replace(':3', rt)
     ;
-  } else if (template === 'I1') {
+  } 
+  if (template === 'I1') {
     format = ':0 :1, :2, :3';
-    string = format
-    .replace(':0', assembly.op)
-    .replace(':1', assembly.rt)
-    .replace(':2', assembly.rs)
-    .replace(':3', assembly.imm)
+    return format
+    .replace(':0', op)
+    .replace(':1', rt)
+    .replace(':2', rs)
+    .replace(':3', imm)
     ;
-  } else if (template === 'I2') {
+  }
+  if (template === 'I2') {
     format = ':0 :1, :2(:3)';
-    string = format
-    .replace(':0', assembly.op)
-    .replace(':1', assembly.rt)
-    .replace(':2', assembly.imm)
-    .replace(':3', assembly.rs)
+    return format
+    .replace(':0', op)
+    .replace(':1', rt)
+    .replace(':2', imm)
+    .replace(':3', rs)
     ;
-  } else if (template === 'J') {
+  }
+  if (template === 'J') {
     format = ':0 :1';
-    string = format
-    .replace(':0', assembly.op)
-    .replace(':1', assembly.imm)
+    return format
+    .replace(':0', op)
+    .replace(':1', imm)
     ;
   }
-
-  return string;
 };
 
-var assemblyForInstructionObject = function(instruction) {
-  var template = instruction.operation().template;
-  var assembly;
-
-  var imm = Number(instruction.imm());
-  if (Number.isNaN(imm)) {
-    throw 'Invalid imm: ' + instruction.imm();
-  }
-
-  if (template === 'R') {
-    assembly = {
-      op: instruction.operation().operation,
-      rd: instruction.rd(),
-      rs: instruction.rs(),
-      rt: instruction.rt(),
-    };
-  } else if (template === 'I1') {
-    assembly = {
-      op: instruction.operation().operation,
-      rt: instruction.rt(),
-      rs: instruction.rs(),
-      imm: instruction.imm() || 0,
-    };
-  } else if (template === 'I2') {
-    assembly = {
-      op: instruction.operation().operation,
-      rt: instruction.rt(),
-      imm: instruction.imm() || 0,
-      rs: instruction.rs()
-    };
-  } else if (template === 'J') {
-    assembly = {
-      op: instruction.operation().operation,
-      imm: instruction.imm() || 0,
-    };
-  }
-  return assembly;
-};
-
-var assemblyForInstructionString = function(string) {
+var assemblyObjForAssemblyStr = function(string) {
   var parts = string
   .replace(new RegExp('[,()]', 'g'), '')
   .split(' ')
@@ -201,35 +180,36 @@ var assemblyForInstructionString = function(string) {
   var operation = getOperationWithName(op);
   var template = operation.template;
 
-  var assembly;
   if (template === 'R') {
-    assembly = {
+    return {
       op: op,
       rd: parts[1],
       rs: parts[2],
       rt: parts[3]
     };
-  } else if (template === 'I1') {
-    assembly = {
+  }
+  if (template === 'I1') {
+    return {
       op: op,
       rt: parts[1],
       rs: parts[2],
       imm: parts[3]
     };
-  } else if (template === 'I2') {
-    assembly = {
+  }
+  if (template === 'I2') {
+    return {
       op: op,
       rt: parts[1],
       imm: parts[2],
       rs: parts[3]
     };
-  } else if (template === 'J') {
-    assembly = {
+  }
+  if (template === 'J') {
+    return {
       op: op,
       imm: parts[1]
     };
   }
-  return assembly;
 };
 
 var getOperationWithName = function(op) {
@@ -243,11 +223,10 @@ var getOperationWithName = function(op) {
 var compileAssembly = function(assembly) {
   var operation = getOperationWithName(assembly.op);
   var type = operation.type;
-  var compiled, format;
+  var imm = assembly.imm;
 
   if (type === 'R') {
-    format = ':0 :1 :2 :3 :4 :5';      
-    compiled = format
+    return ':0 :1 :2 :3 :4 :5'
     .replace(':0', operation.op)
     .replace(':1', regToBinary(assembly.rs))
     .replace(':2', regToBinary(assembly.rt))
@@ -255,24 +234,38 @@ var compileAssembly = function(assembly) {
     .replace(':4', operation.shamt)
     .replace(':5', operation.funct)
     ;
-  } else if (type === 'I') {
-    format = ':0 :1 :2 :3';
-    compiled = format
+  }
+  // debugger
+  // TODO revisar esse imm
+  if (Number.isNaN(imm) || imm === 'NaN') {
+    throw 'Invalid imm';
+  }
+  var bits = immediateBits[type];
+  var range = getRange(bits);
+  if (!validateRange(imm, bits)) {
+    throw 'imm overflow: min :min, max :max'.replace(':min', range.min).replace(':max', range.max);
+  }
+
+  if (type === 'I') {
+    return ':0 :1 :2 :3'
     .replace(':0', operation.op)
     .replace(':1', regToBinary(assembly.rs))
     .replace(':2', regToBinary(assembly.rt))
     .replace(':3', intToBinary(assembly.imm, 16))
     ;
-  } else if (type === 'J') {
-    format = ':0 :1';
-    compiled = format
+  } 
+
+  if (type === 'J') {
+    return ':0 :1'
     .replace(':0', operation.op)
     .replace(':1', intToBinary(assembly.imm, 26))
     ;
   }
-  console.log(compiled);
-  return compiled;
 };
+
+
+
+
 
 var ViewModel = function() {
 
@@ -296,64 +289,63 @@ var ViewModel = function() {
   this.operations = ko.observableArray(operations);
   this.textarea = ko.observable();
 
+  this.compileAssemblyStr = function(assemblyStr, resultsObj, index) {
+    console.log('type', typeof index);
+    var assemblyObj = assemblyObjForAssemblyStr(assemblyStr);
+    try {
+      var compiled = compileAssembly(assemblyObj);      
+    } catch (e) {
+      throw '[line :0: :1] :2'.replace(':0', index + 1).replace(':1', assemblyStr).replace(':2', e);
+    }
+
+    console.log(assemblyStr);
+    console.log(compiled);
+
+    resultsObj.assembly += assemblyStr + '\n';
+    resultsObj.compiled += compiled + '\n';
+    resultsObj.signals += 'signals \n';    
+  };
+
   this.compileFromText = function() {
     var text = this.textarea();
     if (!text) {
       return;
     }
 
-    var resultAssembly = '';
-    var resultCompiled = '';
-    var resultSignals = '';
-
+    var results = {
+      assembly: '',
+      compiled: '',
+      signals: '',
+    };
     var lines = text.split('\n');
     for (var i in lines) {
-      var assemblyLine = lines[i];
-      var assemblyObj = assemblyForInstructionString(assemblyLine);
-      console.log(assemblyLine);
-      var compiled = compileAssembly(assemblyObj);
-
-      resultAssembly += assemblyLine + '\n';
-      resultCompiled += compiled + '\n';
-      resultSignals += 'signals \n';
+      var assemblyStr = lines[i];
+      this.compileAssemblyStr(assemblyStr, results, parseInt(i));
     }
-
-    this.results.assembly(resultAssembly);
-    this.results.compiled(resultCompiled);
-    this.results.signals(resultSignals);
+    return results;
   };
 
   this.compileFromFields = function() {
-
-    var resultAssembly = '';
-    var resultCompiled = '';
-    var resultSignals = '';
-
+    var results = {
+      assembly: '',
+      compiled: '',
+      signals: '',
+    };
     for (var i in this.instructions()) {      
-      var instruction = this.instructions()[i];
-      var assemblyObj = assemblyForInstructionObject(instruction);
-      var assemblyLine = stringForAssembly(assemblyObj, instruction.operation().template);
-      console.log(assemblyLine);
-      var compiled = compileAssembly(assemblyObj);
-
-      resultAssembly += assemblyLine + '\n';
-      resultCompiled += compiled + '\n';
-      resultSignals += 'signals \n';
+      var assemblyStr = assemblyStrForInstruction(this.instructions()[i]);
+      this.compileAssemblyStr(assemblyStr, results, parseInt(i));
     }
-
-    this.results.assembly(resultAssembly);
-    this.results.compiled(resultCompiled);
-    this.results.signals(resultSignals);    
+    return results;
   };
 
   this.compile = function() {
+    this.cleanError();
+    this.cleanResults();
     try {
-      this.cleanResults();
-      if (this.selectedTab() === this.tabs.text) {
-        this.compileFromText();
-      } else {
-        this.compileFromFields();
-      }      
+      var results = this.selectedTab() === this.tabs.text ? this.compileFromText() : this.compileFromFields();
+      this.results.assembly(results.assembly);
+      this.results.compiled(results.compiled);
+      this.results.signals(results.signals);
     } catch (e) {
       this.error(e);
     }
@@ -369,6 +361,10 @@ var ViewModel = function() {
 
   this.enableRemove = function() {
     return this.instructions().length !== 1;
+  };
+
+  this.cleanError = function() {
+    this.error('');
   };
 
   this.cleanResults = function() {

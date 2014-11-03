@@ -179,10 +179,7 @@ var assemblyForInstructionObject = function(instruction) {
 
 var assemblyForInstructionString = function(string) {
   var parts = string
-  .replace(',', '')
-  .replace(',', '') // TODO arrumar isso
-  .replace('(', '')
-  .replace(')', '')
+  .replace(new RegExp('[,()]', 'g'), '')
   .split(' ')
   ;
 

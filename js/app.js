@@ -13,6 +13,12 @@ var immediateBits = {
   J: 26,
 };
 
+var registersToValidate = {
+  R: ['rs', 'rt', 'rd'], 
+  I1: ['rs', 'rt'],
+  I2: ['rs', 'rt'],
+}
+
 var registers = [
   '$0',
   '$at',
@@ -170,11 +176,18 @@ var assemblyStrForInstruction = function(instruction) {
   }
 };
 
-var assemblyObjForAssemblyStr = function(string) {
+var assemblyStrToAssemblyObj = function(string) {
   var parts = string
-  .replace(new RegExp('[,()]', 'g'), '')
+  .replace(new RegExp('[,)]', 'g'), '')
+  .replace('(', ' ')
   .split(' ')
   ;
+
+  var errorMessage = 'Invalid expression, too many symbols';
+
+  if (parts.length > 4) {
+    throw errorMessage;
+  }
 
   var op = parts[0];
   var operation = getOperationWithName(op);
@@ -205,6 +218,9 @@ var assemblyObjForAssemblyStr = function(string) {
     };
   }
   if (template === 'J') {
+    if (parts.length > 2) {
+      throw errorMessage;
+    }    
     return {
       op: op,
       imm: parts[1]
@@ -218,47 +234,90 @@ var getOperationWithName = function(op) {
       return operations[i];
     }
   }
+  throw "Unsuported op";
 };
 
-var compileAssembly = function(assembly) {
-  var operation = getOperationWithName(assembly.op);
+var isCollection = function(obj) {
+  return Object.prototype.toString.call([]).substr(8, 5) === 'Array';
+};
+
+var areValidRegisters = function(assemblyObj, regs) {
+
+  if (regs === undefined) {
+    return true;
+  }
+
+  regs = isCollection(regs) ? regs : [regs];
+  for (var i in regs) {
+    var reg = assemblyObj[regs[i]];
+    var index = registers.indexOf(reg);
+    if (index === -1) {
+      return false;
+    }
+  }
+  return true;
+};
+
+var validateAssemblyObj = function(assemblyObj, operation) {
+
+  var template = operation.template;
   var type = operation.type;
-  var imm = assembly.imm;
+
+  var regsToValidate = registersToValidate[template];
+  debugger
+  if (!areValidRegisters(assemblyObj, regsToValidate)) {
+    throw 'Invalid registers';    
+  }
 
   if (type === 'R') {
-    return ':0 :1 :2 :3 :4 :5'
-    .replace(':0', operation.op)
-    .replace(':1', regToBinary(assembly.rs))
-    .replace(':2', regToBinary(assembly.rt))
-    .replace(':3', regToBinary(assembly.rd))
-    .replace(':4', operation.shamt)
-    .replace(':5', operation.funct)
-    ;
+    return;
   }
-  // debugger
-  // TODO revisar esse imm
+
+  var imm = assemblyObj.imm;
+
   if (Number.isNaN(imm) || imm === 'NaN') {
     throw 'Invalid imm';
   }
+
   var bits = immediateBits[type];
   var range = getRange(bits);
   if (!validateRange(imm, bits)) {
     throw 'imm overflow: min :min, max :max'.replace(':min', range.min).replace(':max', range.max);
   }
+};
+
+var compileAssemblyObj = function(assemblyObj) {
+
+  var operation = getOperationWithName(assemblyObj.op);
+
+  validateAssemblyObj(assemblyObj, operation);
+
+  var type = operation.type;
+
+  if (type === 'R') {
+    return ':0 :1 :2 :3 :4 :5'
+    .replace(':0', operation.op)
+    .replace(':1', regToBinary(assemblyObj.rs))
+    .replace(':2', regToBinary(assemblyObj.rt))
+    .replace(':3', regToBinary(assemblyObj.rd))
+    .replace(':4', operation.shamt)
+    .replace(':5', operation.funct)
+    ;
+  }
 
   if (type === 'I') {
     return ':0 :1 :2 :3'
     .replace(':0', operation.op)
-    .replace(':1', regToBinary(assembly.rs))
-    .replace(':2', regToBinary(assembly.rt))
-    .replace(':3', intToBinary(assembly.imm, 16))
+    .replace(':1', regToBinary(assemblyObj.rs))
+    .replace(':2', regToBinary(assemblyObj.rt))
+    .replace(':3', intToBinary(assemblyObj.imm, 16))
     ;
   } 
 
   if (type === 'J') {
     return ':0 :1'
     .replace(':0', operation.op)
-    .replace(':1', intToBinary(assembly.imm, 26))
+    .replace(':1', intToBinary(assemblyObj.imm, 26))
     ;
   }
 };
@@ -290,12 +349,12 @@ var ViewModel = function() {
   this.textarea = ko.observable();
 
   this.compileAssemblyStr = function(assemblyStr, resultsObj, index) {
-    console.log('type', typeof index);
-    var assemblyObj = assemblyObjForAssemblyStr(assemblyStr);
+
     try {
-      var compiled = compileAssembly(assemblyObj);      
+      var assemblyObj = assemblyStrToAssemblyObj(assemblyStr);
+      var compiled = compileAssemblyObj(assemblyObj);      
     } catch (e) {
-      throw '[line :0: :1] :2'.replace(':0', index + 1).replace(':1', assemblyStr).replace(':2', e);
+      throw '[line :0: \':1\'] :2'.replace(':0', index + 1).replace(':1', assemblyStr).replace(':2', e);
     }
 
     console.log(assemblyStr);
@@ -308,8 +367,9 @@ var ViewModel = function() {
 
   this.compileFromText = function() {
     var text = this.textarea();
-    if (!text) {
-      return;
+
+    if (!text || text === '') {
+      throw 'Empty expression';
     }
 
     var results = {
@@ -368,6 +428,7 @@ var ViewModel = function() {
   };
 
   this.cleanResults = function() {
+    this.cleanError();    
     for (var i in this.results) {
       this.results[i]('');
     }

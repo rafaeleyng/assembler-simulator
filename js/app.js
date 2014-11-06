@@ -13,11 +13,25 @@ var immediateBits = {
   J: 26,
 };
 
+var types = {
+  R: 'R',
+  I: 'I',
+  J: 'J',
+};
+
+var templates = {
+  R1: 'R1',
+  R2: 'R2',
+  I1: 'I1',
+  I2: 'I2',
+  J: 'J',
+};
+
 var registersToValidate = {
   R: ['rs', 'rt', 'rd'], 
   I1: ['rs', 'rt'],
   I2: ['rs', 'rt'],
-}
+};
 
 var registers = [
   '$0',
@@ -92,25 +106,24 @@ var regToBinary = function(reg) {
 }
 
 var operations = [
-  new Operation('add', 'R', {op: '000000', shamt: '00000', funct: '100000'}),
-  new Operation('sub', 'R', {op: '000000', shamt: '00000', funct: '100010'}),
-  new Operation('and', 'R', {op: '000000', shamt: '00000', funct: '100100'}),
-  new Operation('or',  'R', {op: '000000', shamt: '00000', funct: '100101'}),
-  // new Operation('not', 'R', {op: '000000', shamt: '00000', funct: ''}),
-  new Operation('slt', 'R', {op: '000000', shamt: '00000', funct: '101010'}),
+  new Operation('add', types.R, {op: '000000', shamt: '00000', funct: '100000'}, templates.R1),
+  new Operation('sub', types.R, {op: '000000', shamt: '00000', funct: '100010'}, templates.R1),
+  new Operation('and', types.R, {op: '000000', shamt: '00000', funct: '100100'}, templates.R1),
+  new Operation('or',  types.R, {op: '000000', shamt: '00000', funct: '100101'}, templates.R1),
+  // new Operation('not', types.R, {op: '000000', shamt: '00000', funct: ''}),
+  new Operation('slt', types.R, {op: '000000', shamt: '00000', funct: '101010'}, templates.R1),
 
-  new Operation('addi', 'I', {op: '001000'}, 'I1'),
-  // new Operation('subi', 'I', {op: ''}, 'I1'),
-  new Operation('andi', 'I', {op: '001100'}, 'I1'),
-  new Operation('ori',  'I', {op: '001101'}, 'I1'),
-  // new Operation('noti', 'I', 'I1'),
-  new Operation('slti', 'I', {op: '001010'}, 'I1'),
-  new Operation('beq',  'I', {op: '000100'}, 'I1'),
+  new Operation('addi', types.I, {op: '001000'}, templates.I1),
+  // new Operation('subi', types.I, {op: ''}, templates.I1),
+  new Operation('andi', types.I, {op: '001100'}, templates.I1),
+  new Operation('ori',  types.I, {op: '001101'}, templates.I1),
+  new Operation('slti', types.I, {op: '001010'}, templates.I1),
+  new Operation('beq',  types.I, {op: '000100'}, templates.I1),
 
-  new Operation('lw', 'I', {op: '100011'}, 'I2'),
-  new Operation('sw', 'I', {op: '101011'}, 'I2'),
+  new Operation('lw', types.I, {op: '100011'}, templates.I2),
+  new Operation('sw', types.I, {op: '101011'}, templates.I2),
 
-  new Operation('j', 'J', {op: '000010'}),
+  new Operation('j', types.J, {op: '000010'}),
 ];
 
 var Instruction = function() {
@@ -140,7 +153,7 @@ var assemblyStrForInstruction = function(instruction) {
   var rs = instruction.rs();
   var rt = instruction.rt();
 
-  if (template === 'R') {
+  if (template === templates.R1) {
     format = ':0 :1, :2, :3';     
     return format
     .replace(':0', op)
@@ -149,7 +162,7 @@ var assemblyStrForInstruction = function(instruction) {
     .replace(':3', rt)
     ;
   } 
-  if (template === 'I1') {
+  if (template === templates.I1) {
     format = ':0 :1, :2, :3';
     return format
     .replace(':0', op)
@@ -158,7 +171,7 @@ var assemblyStrForInstruction = function(instruction) {
     .replace(':3', imm)
     ;
   }
-  if (template === 'I2') {
+  if (template === templates.I2) {
     format = ':0 :1, :2(:3)';
     return format
     .replace(':0', op)
@@ -167,7 +180,7 @@ var assemblyStrForInstruction = function(instruction) {
     .replace(':3', rs)
     ;
   }
-  if (template === 'J') {
+  if (template === templates.J) {
     format = ':0 :1';
     return format
     .replace(':0', op)
@@ -193,7 +206,7 @@ var assemblyStrToAssemblyObj = function(string) {
   var operation = getOperationWithName(op);
   var template = operation.template;
 
-  if (template === 'R') {
+  if (template === templates.R1) {
     return {
       op: op,
       rd: parts[1],
@@ -201,7 +214,7 @@ var assemblyStrToAssemblyObj = function(string) {
       rt: parts[3]
     };
   }
-  if (template === 'I1') {
+  if (template === templates.I1) {
     return {
       op: op,
       rt: parts[1],
@@ -209,7 +222,7 @@ var assemblyStrToAssemblyObj = function(string) {
       imm: parts[3]
     };
   }
-  if (template === 'I2') {
+  if (template === templates.I2) {
     return {
       op: op,
       rt: parts[1],
@@ -217,7 +230,7 @@ var assemblyStrToAssemblyObj = function(string) {
       rs: parts[3]
     };
   }
-  if (template === 'J') {
+  if (template === templates.J) {
     if (parts.length > 2) {
       throw errorMessage;
     }    
@@ -269,7 +282,7 @@ var validateAssemblyObj = function(assemblyObj, operation) {
     throw 'Invalid registers';    
   }
 
-  if (type === 'R') {
+  if (type === types.R) {
     return;
   }
 
@@ -294,7 +307,7 @@ var compileAssemblyObj = function(assemblyObj) {
 
   var type = operation.type;
 
-  if (type === 'R') {
+  if (type === types.R) {
     return ':0 :1 :2 :3 :4 :5'
     .replace(':0', operation.op)
     .replace(':1', regToBinary(assemblyObj.rs))
@@ -305,7 +318,7 @@ var compileAssemblyObj = function(assemblyObj) {
     ;
   }
 
-  if (type === 'I') {
+  if (type === types.I) {
     return ':0 :1 :2 :3'
     .replace(':0', operation.op)
     .replace(':1', regToBinary(assemblyObj.rs))
@@ -314,7 +327,7 @@ var compileAssemblyObj = function(assemblyObj) {
     ;
   } 
 
-  if (type === 'J') {
+  if (type === types.J) {
     return ':0 :1'
     .replace(':0', operation.op)
     .replace(':1', intToBinary(assemblyObj.imm, 26))

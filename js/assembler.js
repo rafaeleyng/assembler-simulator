@@ -61,44 +61,6 @@ app.Assembler = function() {
     '$ra',
   ];
 
-  // TODO
-  String.prototype.padleft = function(len, chr) {
-    var repeats = len - this.length;
-    var pad = '';
-    for (var i = 0; i < repeats; i++) {
-      pad += chr;
-    }
-    return pad + this;
-  };
-
-  this.getRange = function (bits) {
-    var pow = Math.pow(2, bits);
-    var half = pow/2;
-    var min = -half;
-    var max = half - 1;
-    return {min: min, max: max};  
-  };
-
-  this.validateRange = function(number, bits) {
-    var range = this.getRange(bits);
-    return range.min <= number && number <= range.max; 
-  };
-
-  this.intToBinary = function(int, bits) {
-    int = parseInt(int);
-    if (int>=0) {
-      return int.toString(2).padleft(bits, "0");
-    }
-    return (-int-1).toString(2)
-      .replace(/[01]/g, function(d){return +!+d;}) // inverts each char
-      .padleft(bits, "1");
-  };
-
-  this.regToBinary = function(reg) {
-    var index = this.registers.indexOf(reg);
-    return this.intToBinary(index, 5);
-  };
-
   this.operations = [
     new app.Model.Operation('add', this.types.R, {op: '000000', shamt: '00000', funct: '100000'}, this.templates.R1),
     new app.Model.Operation('sub', this.types.R, {op: '000000', shamt: '00000', funct: '100010'}, this.templates.R1),
@@ -119,6 +81,43 @@ app.Assembler = function() {
 
     new app.Model.Operation('j', this.types.J, {op: '000010'}),
   ];
+
+  this.padLeft = function(string, len, chr) {
+    var repeats = len - string.length;
+    var pad = '';
+    for (var i = 0; i < repeats; i++) {
+      pad += chr;
+    }
+    return pad + string;
+  };
+
+  this.getRange = function (bits) {
+    var pow = Math.pow(2, bits);
+    var half = pow/2;
+    var min = -half;
+    var max = half - 1;
+    return {min: min, max: max};  
+  };
+
+  this.validateRange = function(number, bits) {
+    var range = this.getRange(bits);
+    return range.min <= number && number <= range.max; 
+  };
+
+  this.intToBinary = function(int, bits) {
+    int = parseInt(int);
+    if (int>=0) {
+      return this.padLeft(int.toString(2), bits, '0');
+    }
+    var bin = (-int-1).toString(2).replace(/[01]/g, function(d){return +!+d;}) // inverts each char    
+    bin = this.padLeft(bin, bits, '1');
+    return bin;
+  };
+
+  this.regToBinary = function(reg) {
+    var index = this.registers.indexOf(reg);
+    return this.intToBinary(index, 5);
+  };
 
   this.assemblyStrForInstruction = function(instruction) {
     var template = instruction.operation().template;

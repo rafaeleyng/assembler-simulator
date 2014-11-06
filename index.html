@@ -3,8 +3,8 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Assembler</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="css/vendor/bootstrap-theme.min.css">
   <link rel="stylesheet" href="css/sticky-footer.css">
   <link rel="stylesheet" href="css/app.css">
 </head>
@@ -105,22 +105,22 @@
   <!-- Templates -->
   <script type="text/html" id="R1">
     <div class="col-md-4">
-      <select data-bind="options: registers, value: rd" class="form-control"></select>
+      <select data-bind="options: $root.assembler.registers, value: rd" class="form-control"></select>
     </div>
     <div class="col-md-4">
-      <select data-bind="options: registers, value: rs" class="form-control"></select>
+      <select data-bind="options: $root.assembler.registers, value: rs" class="form-control"></select>
     </div>
     <div class="col-md-4">
-      <select data-bind="options: registers, value: rt" class="form-control"></select>  
+      <select data-bind="options: $root.assembler.registers, value: rt" class="form-control"></select>  
     </div>
   </script>
 
   <script type="text/html" id="I1">
     <div class="col-md-4">
-      <select data-bind="options: registers, value: rt" class="form-control"></select>
+      <select data-bind="options: $root.assembler.registers, value: rt" class="form-control"></select>
     </div>
     <div class="col-md-4">
-      <select data-bind="options: registers, value: rs" class="form-control"></select>
+      <select data-bind="options: $root.assembler.registers, value: rs" class="form-control"></select>
     </div>
     <div class="col-md-4">
       <input type="text" data-bind="value: imm" class="form-control">
@@ -129,13 +129,13 @@
 
   <script type="text/html" id="I2">
     <div class="col-md-4">
-      <select data-bind="options: registers, value: rt" class="form-control"></select>
+      <select data-bind="options: $root.assembler.registers, value: rt" class="form-control"></select>
     </div>
     <div class="col-md-4">
       <input type="text" data-bind="value: imm" class="form-control">
     </div>
     <div class="col-md-4">
-      <select data-bind="options: registers, value: rs" class="form-control"></select>
+      <select data-bind="options: $root.assembler.registers, value: rs" class="form-control"></select>
     </div>
   </script>
 
@@ -146,9 +146,13 @@
   </script>
 
   <!-- JS -->
-  <script src="js/jquery-2.1.1.min.js"></script>
-	<script src="js/knockout-3.2.0.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-	<script src="js/app.js"></script>
+  <script src="js/vendor/jquery-2.1.1.min.js"></script>
+	<script src="js/vendor/knockout-3.2.0.js"></script>
+  <script src="js/vendor/bootstrap.min.js"></script>
+
+  <script src="js/models.js"></script>
+  <script src="js/assembler.js"></script>
+  <script src="js/assemblerViewModel.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

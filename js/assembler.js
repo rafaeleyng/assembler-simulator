@@ -66,8 +66,9 @@ app.Assembler = function() {
     new app.Model.Operation('sub', this.types.R, {opcode: '000000', shamt: '00000', funct: '100010'}, this.templates.R1),
     new app.Model.Operation('and', this.types.R, {opcode: '000000', shamt: '00000', funct: '100100'}, this.templates.R1),
     new app.Model.Operation('or',  this.types.R, {opcode: '000000', shamt: '00000', funct: '100101'}, this.templates.R1),
-    // new app.Model.Operation('not', this.types.R, {opcode: '000000', shamt: '00000' }, this.templates.R2),
+    new app.Model.Operation('nor', this.types.R, {opcode: '000000', shamt: '00000', funct: '100111'}, this.templates.R1),
     new app.Model.Operation('slt', this.types.R, {opcode: '000000', shamt: '00000', funct: '101010'}, this.templates.R1),
+    new app.Model.Operation('not', this.types.R, {opcode: '000000', shamt: '00000', funct: ''}, this.templates.R2),
 
     new app.Model.Operation('addi', this.types.I, {opcode: '001000'}, this.templates.I1),
     new app.Model.Operation('subi', this.types.I, {opcode: ''}, this.templates.I1),
@@ -138,6 +139,16 @@ app.Assembler = function() {
       .replace(':3', rt)
       ;
     } 
+
+    if (template === this.templates.R2) {
+      format = ':0 :1, :2';     
+      return format
+      .replace(':0', op)
+      .replace(':1', rd)
+      .replace(':2', rs)
+      ;
+    } 
+
     if (template === this.templates.I1) {
       format = ':0 :1, :2, :3';
       return format
@@ -163,6 +174,8 @@ app.Assembler = function() {
       .replace(':1', imm)
       ;
     }
+
+    throw 'undefined template for instruction';
   };
 
   this.assemblyStrToAssemblyObj = function(string) {
@@ -188,6 +201,13 @@ app.Assembler = function() {
         rd: parts[1],
         rs: parts[2],
         rt: parts[3]
+      };
+    }
+    if (template === this.templates.R2) {
+      return {
+        op: op,
+        rd: parts[1],
+        rs: parts[2]
       };
     }
     if (template === this.templates.I1) {
@@ -398,6 +418,7 @@ app.Assembler = function() {
   };
 
   this.compileAssemblyStr = function(assemblyStr, resultsObj, index) {
+    debugger
     try {
       var lineResults = this.assemblyStrToAssemblyObjs(assemblyStr);
       for (var i in lineResults) {

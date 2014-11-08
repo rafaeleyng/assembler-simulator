@@ -2,6 +2,26 @@ var app = app || {};
 
 app.ViewModel = app.ViewModel || {};
 
+var binToHex = function(binaryString) {
+    var output = '';
+
+    // For every 4 bits in the binary string
+    for (var i=0; i < binaryString.length; i+=4)
+    {
+        // Grab a chunk of 4 bits
+        var bytes = binaryString.substr(i, 4);
+
+        // Convert to decimal then hexadecimal
+        var decimal = parseInt(bytes, 2);
+        var hex = decimal.toString(16);
+
+        // Uppercase all the letters and append to output
+        output += hex.toUpperCase();
+    }
+
+    return output;      
+};
+
 app.ViewModel.Assembler = function(assembler) {
 
   var self = this;
@@ -13,9 +33,17 @@ app.ViewModel.Assembler = function(assembler) {
     fields: 1,
   };
 
+  this.compiled = {
+    binSpaced: 0,
+    bin: 1,
+    hex: 2,
+  };
+
   this.results = {
-    compiled: ko.observable(''),
     assembly: ko.observable(''),
+    compiledBinSpaced: ko.observable(''),
+    compiledBin: ko.observable(''),
+    compiledHex: ko.observable(''),
     signals: ko.observable(''),
   };
 
@@ -33,14 +61,20 @@ app.ViewModel.Assembler = function(assembler) {
       // TODO resolver a duplicação de assemblyStr no for loop
       for (var i in lineResults) {
         var lineResult = lineResults[i];
-        var compiledStr = this.assembler.compileAssemblyObj(lineResult.obj);      
+        var compiledBinSpaced = this.assembler.compileAssemblyObj(lineResult.obj);      
 
+        var compiledBin = compiledBinSpaced.replace(/ /g, '');
+        
         console.log(lineResult.str);
-        console.log(compiledStr);
+        console.log(compiledBinSpaced);
+        console.log(compiledBin);
+        console.log(binToHex(compiledBin));
 
         resultsObj.assembly += lineResult.str + '\n';
-        resultsObj.compiled += compiledStr + '\n';
-        resultsObj.signals += 'signals \n';    
+        resultsObj.compiledBinSpaced += compiledBinSpaced + '\n';
+        resultsObj.compiledBin += compiledBin + '\n';
+        resultsObj.compiledHex += '0x' + binToHex(compiledBin) + '\n';
+        resultsObj.signals += 'signals \n';
       }
 
     } catch (e) {
@@ -57,7 +91,9 @@ app.ViewModel.Assembler = function(assembler) {
 
     var results = {
       assembly: '',
-      compiled: '',
+      compiledBinSpaced: '',
+      compiledBin: '',
+      compiledHex: '',
       signals: '',
     };
     var lines = text.split('\n');
@@ -71,7 +107,9 @@ app.ViewModel.Assembler = function(assembler) {
   this.compileFromFields = function() {
     var results = {
       assembly: '',
-      compiled: '',
+      compiledBinSpaced: '',
+      compiledBin: '',
+      compiledHex: '',
       signals: '',
     };
     for (var i in this.instructions()) {      
@@ -87,7 +125,9 @@ app.ViewModel.Assembler = function(assembler) {
     try {
       var results = this.selectedTab() === this.tabs.text ? this.compileFromText() : this.compileFromFields();
       this.results.assembly(results.assembly);
-      this.results.compiled(results.compiled);
+      this.results.compiledBinSpaced(results.compiledBinSpaced);
+      this.results.compiledBin(results.compiledBin);
+      this.results.compiledHex(results.compiledHex);
       this.results.signals(results.signals);
     } catch (e) {
       this.error(e);
@@ -115,6 +155,14 @@ app.ViewModel.Assembler = function(assembler) {
     for (var i in this.results) {
       this.results[i]('');
     }
+  };
+
+  this.selectedCompiled = ko.observable(0);
+  this.selectCompiled = function(compiled) {
+    this.selectedCompiled(compiled);
+  };
+  this.isSelectedCompiled = function(compiled) {
+    return this.selectedCompiled() === compiled;
   };
 
   // tabs

@@ -1,5 +1,5 @@
 ul,
-li { 
+li {
   padding: 0;
   margin: 0;
 }
@@ -13,4 +13,8 @@ textarea {
 
 .section {
   margin-bottom: 20px;
+}
+
+.inline-text {
+  display: inline-block;
 }

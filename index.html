@@ -71,17 +71,43 @@
     <!-- result -->
     <div class="row section" data-bind="visible: results.assembly().length > 0">  
       <div class="col-md-2">
-        <div>Assembly</div>
+        <div>
+          <p class="inline-text">Assembly</p>
+        </div>
         <pre data-bind="text: results.assembly"></pre>
       </div>
 
       <div class="col-md-5">
-        <div>Binário (compilado)</div>
-        <pre data-bind="text: results.compiled"></pre>
+        <div>
+          <div>
+            <p class="inline-text">Compilado</p>
+
+            <div class="btn-group btn-group-xs">
+              <button class="btn btn-default" 
+                      data-bind="css: {active: isSelectedCompiled(compiled.binSpaced)}, click: selectCompiled.bind($root, compiled.binSpaced)">
+                bin spaced
+              </button>
+              <button class="btn btn-default" 
+                      data-bind="css: {active: isSelectedCompiled(compiled.bin)}, click: selectCompiled.bind($root, compiled.bin)">
+                bin
+              </button>
+              <button class="btn btn-default"
+                      data-bind="css: {active: isSelectedCompiled(compiled.hex)}, click: selectCompiled.bind($root, compiled.hex)">
+                hex
+              </button>
+            </div>
+
+          </div>
+        </div>
+        <pre data-bind="text: results.compiledBinSpaced, visible: isSelectedCompiled(compiled.binSpaced)"></pre>
+        <pre data-bind="text: results.compiledBin, visible: isSelectedCompiled(compiled.bin)"></pre>
+        <pre data-bind="text: results.compiledHex, visible: isSelectedCompiled(compiled.hex)"></pre>
       </div>
 
       <div class="col-md-5">
-        <div>Sinais</div>
+        <div>
+          <p class="inline-text">Sinais</p>
+        </div>
         <pre data-bind="text: results.signals"></pre>
       </div>
     </div>

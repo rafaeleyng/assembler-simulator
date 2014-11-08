@@ -224,7 +224,7 @@ app.Assembler = function() {
   this.splitAssemblyResult = function(assemblyResult) {
     var op = assemblyResult.obj.op;
     var assemblyResultStrs = [];
-    // debugger
+
     if (op === 'not') {
       var assemblyStr1 = 'nor :0, :1, $0'
       .replace(':0', assemblyResult.obj.rd)
@@ -361,4 +361,53 @@ app.Assembler = function() {
       ;
     }
   };
+
+  this.compileFromText = function(results, text) {
+    if (!text || text === '') {
+      throw 'Empty expression';
+    }
+
+    var lines = text.split('\n');
+    for (var i in lines) {
+      var assemblyStr = lines[i];
+      this.compileAssemblyStr(assemblyStr, results, parseInt(i));
+    }
+    return results;
+  };
+
+  this.compileFromFields = function(results, instructions) {
+    
+    for (var i in instructions) {      
+      var assemblyStr = this.assemblyStrForInstruction(instructions[i]);
+      this.compileAssemblyStr(assemblyStr, results, parseInt(i));
+    }
+    return results;
+  };
+
+  this.compileAssemblyStr = function(assemblyStr, resultsObj, index) {
+    try {
+      var lineResults = this.assemblyStrToAssemblyObjs(assemblyStr);
+      for (var i in lineResults) {
+        var lineResult = lineResults[i];
+        var compiledBinSpaced = this.compileAssemblyObj(lineResult.obj);      
+
+        var compiledBin = compiledBinSpaced.replace(/ /g, '');
+        
+        console.log(lineResult.str);
+        console.log(compiledBinSpaced);
+        console.log(compiledBin);
+        console.log(binToHex(compiledBin));
+
+        resultsObj.assembly += lineResult.str + '\n';
+        resultsObj.compiledBinSpaced += compiledBinSpaced + '\n';
+        resultsObj.compiledBin += compiledBin + '\n';
+        resultsObj.compiledHex += '0x' + binToHex(compiledBin) + '\n';
+        resultsObj.signals += 'signals \n';
+      }
+
+    } catch (e) {
+      throw '[line :0: \':1\'] :2'.replace(':0', index + 1).replace(':1', assemblyStr).replace(':2', e);
+    }
+  };
+
 };

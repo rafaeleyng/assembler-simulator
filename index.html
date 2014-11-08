@@ -17,7 +17,7 @@
     
     <ul class="nav nav-tabs section" role="tablist">
       <li role="presentation" data-bind="css: {active: isSelectedTab(tabs.text)}">
-        <a href="#" data-bind="click: selectTab.bind($root, tabs.text)">Código-Fonte</a>
+        <a href="#" data-bind="click: selectTab.bind($root, tabs.text)">Source Code</a>
       </li>
       <li role="presentation" data-bind="css: {active: isSelectedTab(tabs.fields)}">
         <a href="#" data-bind="click: selectTab.bind($root, tabs.fields)">Wizard</a>
@@ -57,14 +57,14 @@
     <!-- buttons -->
     <div class="row section">
       <div class="col-md-6">
-        <button data-bind="click: compile" class="btn btn-primary">Compilar</button>
-        <button data-bind="click: cleanResults" class="btn btn-default">Limpar</button>        
+        <button data-bind="click: compile" class="btn btn-primary">Compile</button>
+        <button data-bind="click: cleanResults" class="btn btn-default">Clear</button>        
       </div>
     </div>
 
     <div class="row section" data-bind="visible: error">
       <div class="col-md-12">
-        <pre class="text-danger bg-danger" data-bind="text: error">Erro</pre>
+        <pre class="text-danger bg-danger" data-bind="text: error">Error</pre>
       </div>      
     </div>
 
@@ -80,7 +80,7 @@
       <div class="col-md-5">
         <div>
           <div>
-            <p class="inline-text">Compilado</p>
+            <p class="inline-text">Compiled</p>
 
             <div class="btn-group btn-group-xs">
               <button class="btn btn-default" 
@@ -106,7 +106,7 @@
 
       <div class="col-md-5">
         <div>
-          <p class="inline-text">Sinais</p>
+          <p class="inline-text">Signals</p>
         </div>
         <pre data-bind="text: results.signals"></pre>
       </div>
@@ -115,7 +115,7 @@
   </div>
   
 
- <!--  <div class="footer">
+  <div class="footer">
     <div class="container">
       <div class="row">
         <div class="col-md-offset-4 col-md-4 text-center">
@@ -126,7 +126,7 @@
       </div>
     </div>
   </div>
-  --> 
+  
 
   <!-- Templates -->
   <script type="text/html" id="R1">

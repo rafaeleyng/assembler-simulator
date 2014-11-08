@@ -107,6 +107,20 @@ app.ViewModel.Assembler = function(assembler) {
     return this.selectedCompiled() === compiled;
   };
 
+  this.compiledResult = ko.computed(function() {
+    var results = self.results;
+    var selectedCompiled = self.selectedCompiled();
+    if (selectedCompiled === self.compiled.binSpaced) {
+      return results.compiledBinSpaced();
+    }
+    if (selectedCompiled === self.compiled.bin) {
+      return results.compiledBin();
+    }
+    if (selectedCompiled === self.compiled.hex) {
+      return results.compiledHex();
+    }
+  });  
+
   // tabs
   this.selectedTab = ko.observable(0);
   this.selectTab = function(tab) {

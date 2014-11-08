@@ -99,9 +99,7 @@
 
           </div>
         </div>
-        <pre data-bind="text: results.compiledBinSpaced, visible: isSelectedCompiled(compiled.binSpaced)"></pre>
-        <pre data-bind="text: results.compiledBin, visible: isSelectedCompiled(compiled.bin)"></pre>
-        <pre data-bind="text: results.compiledHex, visible: isSelectedCompiled(compiled.hex)"></pre>
+        <pre data-bind="text: compiledResult()"></pre>
       </div>
 
       <div class="col-md-5">

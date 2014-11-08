@@ -6,10 +6,9 @@ app.Model.Operation = function(operation, type, components, template) {
   this.operation = operation;
   this.type = type;
   this.template = template ? template : type;
-  this.op = components.op;
+  this.opcode = components.opcode;
   this.funct = components.funct;
   this.shamt = components.shamt;
-  this.op = components.op;
 };
 
 app.Model.Instruction = function() {

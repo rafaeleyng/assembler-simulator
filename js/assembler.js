@@ -62,24 +62,24 @@ app.Assembler = function() {
   ];
 
   this.operations = [
-    new app.Model.Operation('add', this.types.R, {op: '000000', shamt: '00000', funct: '100000'}, this.templates.R1),
-    new app.Model.Operation('sub', this.types.R, {op: '000000', shamt: '00000', funct: '100010'}, this.templates.R1),
-    new app.Model.Operation('and', this.types.R, {op: '000000', shamt: '00000', funct: '100100'}, this.templates.R1),
-    new app.Model.Operation('or',  this.types.R, {op: '000000', shamt: '00000', funct: '100101'}, this.templates.R1),
-    // new Operation('not', this.types.R, {op: '000000', shamt: '00000', funct: ''}),
-    new app.Model.Operation('slt', this.types.R, {op: '000000', shamt: '00000', funct: '101010'}, this.templates.R1),
+    new app.Model.Operation('add', this.types.R, {opcode: '000000', shamt: '00000', funct: '100000'}, this.templates.R1),
+    new app.Model.Operation('sub', this.types.R, {opcode: '000000', shamt: '00000', funct: '100010'}, this.templates.R1),
+    new app.Model.Operation('and', this.types.R, {opcode: '000000', shamt: '00000', funct: '100100'}, this.templates.R1),
+    new app.Model.Operation('or',  this.types.R, {opcode: '000000', shamt: '00000', funct: '100101'}, this.templates.R1),
+    // new app.Model.Operation('not', this.types.R, {opcode: '000000', shamt: '00000' }, this.templates.R2),
+    new app.Model.Operation('slt', this.types.R, {opcode: '000000', shamt: '00000', funct: '101010'}, this.templates.R1),
 
-    new app.Model.Operation('addi', this.types.I, {op: '001000'}, this.templates.I1),
-    // new Operation('subi', this.types.I, {op: ''}, this.templates.I1),
-    new app.Model.Operation('andi', this.types.I, {op: '001100'}, this.templates.I1),
-    new app.Model.Operation('ori',  this.types.I, {op: '001101'}, this.templates.I1),
-    new app.Model.Operation('slti', this.types.I, {op: '001010'}, this.templates.I1),
-    new app.Model.Operation('beq',  this.types.I, {op: '000100'}, this.templates.I1),
+    new app.Model.Operation('addi', this.types.I, {opcode: '001000'}, this.templates.I1),
+    new app.Model.Operation('subi', this.types.I, {opcode: ''}, this.templates.I1),
+    new app.Model.Operation('andi', this.types.I, {opcode: '001100'}, this.templates.I1),
+    new app.Model.Operation('ori',  this.types.I, {opcode: '001101'}, this.templates.I1),
+    new app.Model.Operation('slti', this.types.I, {opcode: '001010'}, this.templates.I1),
+    new app.Model.Operation('beq',  this.types.I, {opcode: '000100'}, this.templates.I1),
 
-    new app.Model.Operation('lw', this.types.I, {op: '100011'}, this.templates.I2),
-    new app.Model.Operation('sw', this.types.I, {op: '101011'}, this.templates.I2),
+    new app.Model.Operation('lw', this.types.I, {opcode: '100011'}, this.templates.I2),
+    new app.Model.Operation('sw', this.types.I, {opcode: '101011'}, this.templates.I2),
 
-    new app.Model.Operation('j', this.types.J, {op: '000010'}),
+    new app.Model.Operation('j', this.types.J, {opcode: '000010'}),
   ];
 
   this.padLeft = function(string, len, chr) {
@@ -217,6 +217,57 @@ app.Assembler = function() {
     }
   };
 
+  this.needSplit = function(assemblyObj) {
+    return ['not', 'subi'].indexOf(assemblyObj.op) !== -1;
+  };
+
+  this.splitAssemblyResult = function(assemblyResult) {
+    var op = assemblyResult.obj.op;
+    var assemblyResultStrs = [];
+    // debugger
+    if (op === 'not') {
+      var assemblyStr1 = 'nor :0, :1, $0'
+      .replace(':0', assemblyResult.obj.rd)
+      .replace(':1', assemblyResult.obj.rs)
+      ;
+      console.log(assemblyStr1);
+
+      assemblyResultStrs.push(assemblyStr1);
+
+    } else if (op === 'subi') {
+      var assemblyStr1 = 'addi $at, $0, :0'
+      .replace(':0', assemblyResult.obj.imm)
+      ;
+
+      var assemblyStr2 = 'sub :0, :1, $at'
+      .replace(':0', assemblyResult.obj.rt)
+      .replace(':1', assemblyResult.obj.rs) // TODO conferir aqui se é realmente rt e rs
+      ;
+
+      assemblyResultStrs.push(assemblyStr1);
+      assemblyResultStrs.push(assemblyStr2);
+    }
+
+    var assemblyResults = [];
+    for (var i in assemblyResultStrs) {
+      var assemblyResultStr = assemblyResultStrs[i];
+      assemblyResults.push({
+        str: assemblyResultStr,
+        obj: this.assemblyStrToAssemblyObj(assemblyResultStr),
+      })
+    }
+    return assemblyResults;
+  };
+
+  this.assemblyStrToAssemblyObjs = function(assemblyStr) {
+    var assemblyObj = this.assemblyStrToAssemblyObj(assemblyStr);
+    var assemblyResult = { str: assemblyStr, obj: assemblyObj };
+    
+    var assemblyResults = this.needSplit(assemblyObj) ? this.splitAssemblyResult(assemblyResult) : [assemblyResult];
+
+    return assemblyResults;
+  };
+
   this.getOperationWithName = function(op) {
     for (var i in this.operations) {
       if (this.operations[i].operation === op) {
@@ -253,7 +304,7 @@ app.Assembler = function() {
     var type = operation.type;
 
     var regsToValidate = this.registersToValidate[template];
-    debugger
+
     if (!this.areValidRegisters(assemblyObj, regsToValidate)) {
       throw 'Invalid registers';    
     }
@@ -285,7 +336,7 @@ app.Assembler = function() {
 
     if (type === this.types.R) {
       return ':0 :1 :2 :3 :4 :5'
-      .replace(':0', operation.op)
+      .replace(':0', operation.opcode)
       .replace(':1', this.regToBinary(assemblyObj.rs))
       .replace(':2', this.regToBinary(assemblyObj.rt))
       .replace(':3', this.regToBinary(assemblyObj.rd))
@@ -296,7 +347,7 @@ app.Assembler = function() {
 
     if (type === this.types.I) {
       return ':0 :1 :2 :3'
-      .replace(':0', operation.op)
+      .replace(':0', operation.opcode)
       .replace(':1', this.regToBinary(assemblyObj.rs))
       .replace(':2', this.regToBinary(assemblyObj.rt))
       .replace(':3', this.intToBinary(assemblyObj.imm, 16))
@@ -305,7 +356,7 @@ app.Assembler = function() {
 
     if (type === this.types.J) {
       return ':0 :1'
-      .replace(':0', operation.op)
+      .replace(':0', operation.opcode)
       .replace(':1', this.intToBinary(assemblyObj.imm, 26))
       ;
     }

@@ -27,20 +27,25 @@ app.ViewModel.Assembler = function(assembler) {
   this.textarea = ko.observable();
 
   this.compileAssemblyStr = function(assemblyStr, resultsObj, index) {
-
+    // debugger
     try {
-      var assemblyObj = this.assembler.assemblyStrToAssemblyObj(assemblyStr);
-      var compiled = this.assembler.compileAssemblyObj(assemblyObj);      
+      var lineResults = this.assembler.assemblyStrToAssemblyObjs(assemblyStr);
+      // TODO resolver a duplicação de assemblyStr no for loop
+      for (var i in lineResults) {
+        var lineResult = lineResults[i];
+        var compiledStr = this.assembler.compileAssemblyObj(lineResult.obj);      
+
+        console.log(lineResult.str);
+        console.log(compiledStr);
+
+        resultsObj.assembly += lineResult.str + '\n';
+        resultsObj.compiled += compiledStr + '\n';
+        resultsObj.signals += 'signals \n';    
+      }
+
     } catch (e) {
       throw '[line :0: \':1\'] :2'.replace(':0', index + 1).replace(':1', assemblyStr).replace(':2', e);
     }
-
-    console.log(assemblyStr);
-    console.log(compiled);
-
-    resultsObj.assembly += assemblyStr + '\n';
-    resultsObj.compiled += compiled + '\n';
-    resultsObj.signals += 'signals \n';    
   };
 
   this.compileFromText = function() {

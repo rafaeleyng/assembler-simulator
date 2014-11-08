@@ -333,6 +333,8 @@ app.Assembler = function() {
     this.validateAssemblyObj(assemblyObj, operation);
 
     var type = operation.type;
+    var template = operation.template;
+    var op = operation.operation;
 
     if (type === this.types.R) {
       return ':0 :1 :2 :3 :4 :5'
@@ -342,6 +344,17 @@ app.Assembler = function() {
       .replace(':3', this.regToBinary(assemblyObj.rd))
       .replace(':4', operation.shamt)
       .replace(':5', operation.funct)
+      ;
+    }
+
+    if (op === 'beq') {
+    // adicionei esse caso apenas para corrigir uma diferença específica do beq em relação ao output do MARS.
+    // não descobri o motivo dessa diferença
+      return ':0 :1 :2 :3'
+      .replace(':0', operation.opcode)
+      .replace(':1', this.regToBinary(assemblyObj.rt))
+      .replace(':2', this.regToBinary(assemblyObj.rs))
+      .replace(':3', this.intToBinary(assemblyObj.imm, 16))
       ;
     }
 

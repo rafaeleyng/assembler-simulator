@@ -18,3 +18,12 @@ textarea {
 .inline-text {
   display: inline-block;
 }
+
+.signals {
+  margin-left: 8px;
+}
+
+.reduced-padding {
+  padding-left: 10px;
+  padding-right: 10px;
+}

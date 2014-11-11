@@ -83,6 +83,40 @@ app.Assembler = function() {
     new app.Model.Operation('j', this.types.J, {opcode: '000010'}),
   ];
 
+  this.isCollection = function(obj) {
+    return Object.prototype.toString.call([]).substr(8, 5) === 'Array';
+  };
+
+  this.replaceMultiple = function(format, repl) {
+    for (var i = 0; i < repl.length; i++) {
+      format = format.replace(':' + i, repl[i]);
+    }
+    return format;
+  };
+
+  this.signalsForOperation = function(operation) {
+    var format = ':0     :1    :2     :3   :4   :5    :6    :7';
+    if (operation.type === this.types.R) {
+      return this.replaceMultiple(format, [1, 1, 0, 0, 0, 0, 10, 0]);
+    }
+    if (operation.type === this.types.J) {
+      return this.replaceMultiple(format, [0, 'X', 'X', 'X', 0, 'X', 'XX', 1]);      
+    }
+
+    var op = operation.operation;
+    if (op === 'lw') {
+      return this.replaceMultiple(format, [1, 0, 1, 0, 0, 1, '00', 0]);
+    }
+    if (op === 'sw') {
+      return this.replaceMultiple(format, [0, 'X', 1, 0, 1, 'X', '00', 0]);
+    }
+    if (op === 'beq') {
+      return this.replaceMultiple(format, [0, 'X', 0, 1, 0, 'X', '01', 0]);
+    }
+
+    return this.replaceMultiple(format, [1, 0, 1, 0, 0, 0, '00', 0]);
+  };
+
   this.padLeft = function(string, len, chr) {
     var repeats = len - string.length;
     var pad = '';
@@ -297,10 +331,6 @@ app.Assembler = function() {
     throw "Unsuported op";
   };
 
-  this.isCollection = function(obj) {
-    return Object.prototype.toString.call([]).substr(8, 5) === 'Array';
-  };
-
   this.areValidRegisters = function(assemblyObj, regs) {
 
     if (regs === undefined) {
@@ -418,7 +448,6 @@ app.Assembler = function() {
   };
 
   this.compileAssemblyStr = function(assemblyStr, resultsObj, index) {
-    debugger
     try {
       var lineResults = this.assemblyStrToAssemblyObjs(assemblyStr);
       for (var i in lineResults) {
@@ -426,6 +455,9 @@ app.Assembler = function() {
         var compiledBinSpaced = this.compileAssemblyObj(lineResult.obj);      
 
         var compiledBin = compiledBinSpaced.replace(/ /g, '');
+        var opcode = assemblyStr.split(' ')[0];
+        var operation = this.getOperationWithName(opcode);
+        console.log('###', operation);
         
         console.log(lineResult.str);
         console.log(compiledBinSpaced);
@@ -436,7 +468,7 @@ app.Assembler = function() {
         resultsObj.compiledBinSpaced += compiledBinSpaced + '\n';
         resultsObj.compiledBin += compiledBin + '\n';
         resultsObj.compiledHex += '0x' + binToHex(compiledBin) + '\n';
-        resultsObj.signals += 'signals \n';
+        resultsObj.signals += this.signalsForOperation(operation) + '\n';
       }
 
     } catch (e) {

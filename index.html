@@ -70,14 +70,14 @@
 
     <!-- result -->
     <div class="row section" data-bind="visible: results.assembly().length > 0">  
-      <div class="col-md-2">
+      <div class="col-md-2 reduced-padding">
         <div>
           <p class="inline-text">Assembly</p>
         </div>
         <pre data-bind="text: results.assembly"></pre>
       </div>
 
-      <div class="col-md-5">
+      <div class="col-md-5 reduced-padding">
         <div>
           <div>
             <p class="inline-text">Compiled</p>
@@ -102,9 +102,9 @@
         <pre data-bind="text: compiledResult()"></pre>
       </div>
 
-      <div class="col-md-5">
+      <div class="col-md-5 reduced-padding">
         <div>
-          <p class="inline-text">Signals</p>
+          <p class="inline-text"><code class="signals">RgWr RgDst ALUSr Bra MmWr MmRg ALUOp J</code></p>
         </div>
         <pre data-bind="text: results.signals"></pre>
       </div>
